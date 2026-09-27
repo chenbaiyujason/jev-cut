@@ -7,6 +7,12 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 spec=importlib.util.spec_from_file_location('syncer',Path(__file__).resolve().parents[1]/'tools/sync-workspace.py');sync=importlib.util.module_from_spec(spec);spec.loader.exec_module(sync)
 
 class SyncTests(unittest.TestCase):
+    def test_release_allows_only_named_changelog_source_data(self):
+        from sync_workspace_policy import forbidden_path
+        for name in ['changelog.json','changelog-types.ts']:
+            self.assertFalse(forbidden_path('apps/editor/src/data/'+name))
+        for name in ['apps/editor/src/data/private.json','data/changelog.json','apps/backend/data/changelog.json']:
+            self.assertTrue(forbidden_path(name))
     def test_scoped_sync_leaves_other_sources_and_prefix_neighbors_out(self):
         incoming={'docs/pitch/index.html':1,'docs/pitch-old/index.html':2,'apps/backend/new.mjs':3}
         baseline={'docs/pitch/removed.css':4,'apps/backend/old.mjs':5}
