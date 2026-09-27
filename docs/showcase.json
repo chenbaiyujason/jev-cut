@@ -12,11 +12,14 @@
       "height": 540,
       "videoCodec": "h264",
       "audioCodec": "aac",
-      "bytes": 27643756,
-      "sha256": "8bc1d4e47b4e58a3b085dd0250eb591c2d51adf7d89ac5030743b41bcaa39342",
+      "bytes": 3561601,
+      "sha256": "66e27bb31bc011936a698ddb590b8c039b25a5e8470e88de33a1c45b0ac60bd8",
       "clips": 29,
       "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/original-m4a.mp4",
-      "poster": "docs/assets/showcase/original-m4a.jpg"
+      "poster": "docs/assets/showcase/original-m4a.jpg",
+      "originalBytes": 27643756,
+      "originalSha256": "8bc1d4e47b4e58a3b085dd0250eb591c2d51adf7d89ac5030743b41bcaa39342",
+      "encodingNote": "网页展示压缩版，保留原画幅、时长和剪辑；H.264 CRF 25，最高视频码率 1.6 Mbps，AAC 112 kbps。"
     },
     {
       "id": "music-homura-mujon56a-4e070a62",
@@ -29,11 +32,14 @@
       "height": 540,
       "videoCodec": "h264",
       "audioCodec": "aac",
-      "bytes": 23620105,
-      "sha256": "a158e530d17083efd04f12910d02296a9a4a8dfb4e5268411b2aebe676f67d4b",
+      "bytes": 3159443,
+      "sha256": "c2d3276d737fbf38d0c9109119f71e5c2f2e805aec4371b0dfed983c338f7f00",
       "clips": 27,
       "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/red-high-heels.mp4",
-      "poster": "docs/assets/showcase/red-high-heels.jpg"
+      "poster": "docs/assets/showcase/red-high-heels.jpg",
+      "originalBytes": 23620105,
+      "originalSha256": "a158e530d17083efd04f12910d02296a9a4a8dfb4e5268411b2aebe676f67d4b",
+      "encodingNote": "网页展示压缩版，保留原画幅、时长和剪辑；H.264 CRF 25，最高视频码率 1.6 Mbps，AAC 112 kbps。"
     },
     {
       "id": "music-homura-mujon56a-fb6e5062",
@@ -46,11 +52,14 @@
       "height": 540,
       "videoCodec": "h264",
       "audioCodec": "aac",
-      "bytes": 13756631,
-      "sha256": "ac57c5d9e5045bee4d5970c02f5561599d22647708cb53cd3bfd1d7f4ca024c2",
+      "bytes": 2075909,
+      "sha256": "8ec301f4e7cae2e365f495b6f86d6c6d39df7ae46eff17c6063125a6e4e41fc4",
       "clips": 13,
       "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/huimaqiang.mp4",
-      "poster": "docs/assets/showcase/huimaqiang.jpg"
+      "poster": "docs/assets/showcase/huimaqiang.jpg",
+      "originalBytes": 13756631,
+      "originalSha256": "ac57c5d9e5045bee4d5970c02f5561599d22647708cb53cd3bfd1d7f4ca024c2",
+      "encodingNote": "网页展示压缩版，保留原画幅、时长和剪辑；H.264 CRF 25，最高视频码率 1.6 Mbps，AAC 112 kbps。"
     },
     {
       "id": "music-homura-mujon56a-264a05c0",
@@ -63,11 +72,14 @@
       "height": 540,
       "videoCodec": "h264",
       "audioCodec": "aac",
-      "bytes": 20192724,
-      "sha256": "46000a269e8cac052cd239b08a4ae0eaeb4030583617dc204ceb1cb129b61530",
+      "bytes": 2478560,
+      "sha256": "8fef08dff3e9e91d4d96adb2c3ead00c83184e64f3aa1b9cd467ba693d591b93",
       "clips": 17,
       "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/wounded-wings.mp4",
-      "poster": "docs/assets/showcase/wounded-wings.jpg"
+      "poster": "docs/assets/showcase/wounded-wings.jpg",
+      "originalBytes": 20192724,
+      "originalSha256": "46000a269e8cac052cd239b08a4ae0eaeb4030583617dc204ceb1cb129b61530",
+      "encodingNote": "网页展示压缩版，保留原画幅、时长和剪辑；H.264 CRF 25，最高视频码率 1.6 Mbps，AAC 112 kbps。"
     },
     {
       "id": "music-homura-mujon56a-85594837",
@@ -80,11 +92,14 @@
       "height": 540,
       "videoCodec": "h264",
       "audioCodec": "aac",
-      "bytes": 12536383,
-      "sha256": "429ef0c51b59a8cd1f16bbdc4385bc8aafb547df02b8af3494ec7a119baa33ab",
+      "bytes": 1712820,
+      "sha256": "55dfaab78662f30b5427a6819d787337f9033b603da0615b3eae86a3d0c8360f",
       "clips": 14,
       "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/yixiao-jianghu.mp4",
-      "poster": "docs/assets/showcase/yixiao-jianghu.jpg"
+      "poster": "docs/assets/showcase/yixiao-jianghu.jpg",
+      "originalBytes": 12536383,
+      "originalSha256": "429ef0c51b59a8cd1f16bbdc4385bc8aafb547df02b8af3494ec7a119baa33ab",
+      "encodingNote": "网页展示压缩版，保留原画幅、时长和剪辑；H.264 CRF 25，最高视频码率 1.6 Mbps，AAC 112 kbps。"
     }
   ],
   "releaseUrl": "https://github.com/chenbaiyujason/jev-cut/releases/tag/showcase-2026-09-27",

@@ -2,7 +2,7 @@
 
 README 的展示顺序是：先看成片，再了解用途和原理，最后进入安装与开发文档。目前已放入五段配乐前半段成片：原始 M4A、红色高跟鞋、回马枪、梦的翅膀受了伤、一笑江湖。
 
-本批视频保留原始 960×540 导出规格，通过 [Release 附件](https://github.com/chenbaiyujason/jev-cut/releases/tag/showcase-2026-09-27) 提供；README 使用真实成片封面链接到 MP4，浏览器可能播放或下载。各版本的时长、主题、文件哈希与链接记录在 [showcase.json](showcase.json)。本机工作台菜单已由制作流程替换成对应五个工程，发布仓库不复制依赖本机素材库的工程文件。
+本批视频压缩为轻量展示版，总计约 13 MB，保留原始 960×540 画幅、时长与剪辑，通过 [Release 附件](https://github.com/chenbaiyujason/jev-cut/releases/tag/showcase-2026-09-27) 提供；README 使用真实成片封面链接到 MP4，浏览器可能播放或下载。各版本的时长、主题、文件哈希与链接记录在 [showcase.json](showcase.json)。本机工作台菜单已由制作流程替换成对应五个工程，发布仓库不复制依赖本机素材库的工程文件。
 
 ## 回传什么
 
