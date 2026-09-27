@@ -43,7 +43,7 @@ JEV_IMAGE_POLICY=required
 
 ## 图像与速度
 
-完整选镜路径会传参考图。默认要求图像支持；纯文本模型应设置 `JEV_SUPPORTS_IMAGES=false`。若明确接受只用描述，可另外设置 `JEV_IMAGE_POLICY=text-only`，审计记录会标明图片被主动省略。不能悄悄删图仍声称做了视觉判断。
+在线选镜默认关闭视觉复核，使用离线多模态理解得到的文字证据；开启视觉复核时才需要决策服务处理参考图。`JEV_SUPPORTS_IMAGES` 表示服务能力，不是视觉开关。纯文本模型应设置 `JEV_SUPPORTS_IMAGES=false`；若明确接受在收到图片请求时退回描述，可设置 `JEV_IMAGE_POLICY=text-only`，审计会标明图片被省略。不能悄悄删图仍声称做了视觉判断。
 
 只有 `/v1/chat/completions` 的聊天模型不是此协议的直接替代品，需要另外实现：候选JSON提示、结构化解析、合法值验证、超时/取消、结果归一化。生成JSON的速度与原生有限选项决策也不能混为一谈。
 

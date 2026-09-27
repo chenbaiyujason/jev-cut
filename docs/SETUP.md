@@ -2,7 +2,7 @@
 
 ## 1. Node 与应用
 
-Node.js 22+，推荐使用仓库实际验证的 Node 24。执行 `npm run setup` 安装前后端依赖并创建空配置。编辑 `apps/backend/localdevenv/.env`。`npm run dev` 启动API、编辑器与合成服务；默认端口8794、8796、8787。
+Node.js 22.12+，推荐使用仓库实际验证的 Node 24。执行 `npm run setup` 安装前后端依赖并创建空配置。编辑 `apps/backend/localdevenv/.env`。`npm run dev` 启动API、编辑器与合成服务；默认端口8794、8796、8787。`setup` 不会安装 Python、FFmpeg 或决策模型服务。
 
 FreeCut 的编译还引用三个小型 Anime4K 模型。`setup` 从固定上游提交下载并校验它们；文件被Git忽略，不放进本仓库历史。单独安装依赖时需运行 `node tools/download-editor-assets.mjs` 后再构建。
 
@@ -25,7 +25,7 @@ JEV_API_PORT=18794 JEV_EDITOR_PORT=18796 JEV_ENGINE_PORT=18787 npm run dev
 
 ## 2. FFmpeg 与 Python
 
-先确保 `ffmpeg -version` 和 `ffprobe -version` 可运行。创建独立Python环境：
+先确保 `ffmpeg -version` 和 `ffprobe -version` 可运行。当前固定的 NumPy/Librosa 依赖要求 Python 3.12+，本机验证为3.13；不要使用系统里可能较旧的 `python` 而不检查版本。用合格解释器创建独立Python环境：
 
 ```sh
 python -m venv apps/backend/.venv
@@ -43,6 +43,8 @@ node tools/download-detector.mjs
 
 该工具从固定revision下载TransNetV2转换权重并校验SHA-256，保存在忽略的`.local/models`。不下载或重分发决策模型权重。
 
+执行 `npm run doctor -- --stage environment` 检查依赖和模型资产。配置自己的服务后，`npm run doctor -- --models` 会额外发送少量纯文本探测请求；成功只证明接口基本可用，多模态能力还要用下面的真实素材小样本验证。
+
 ## 3. 准备自己的视频与字幕
 
 将 `examples/sources.example.json` 复制到 `data/sources.json`。文件路径相对于清单所在目录，例如 `data/raw/episode-01.mkv` 写作 `raw/episode-01.mkv`。每个视频使用唯一正整数episode编号，不要求固定集数。
@@ -54,7 +56,9 @@ npm run media -- --manifest data/sources.json --stage local --dry-run
 npm run media -- --manifest data/sources.json --stage local
 ```
 
-此阶段创建真实镜头边界、保留时间映射的代理、原声/字幕索引和镜头参考图。先抽样检查，再调用理解模型。
+此阶段创建真实镜头边界、保留时间映射的浏览器／分析／剪辑代理、原声/字幕索引和镜头参考图。剪辑代理在 NVIDIA 编码不可用时回退到 CPU，并校验帧数与帧率。运行 `npm run doctor -- --stage local`，再抽样检查画面、字幕与代理。
+
+首次接服务先运行 `npm run media -- --stage understand --pilot`，只理解一个分析块。`pilot-enriched.json` 是小样本证据，不能代替下面完整的 understand 阶段。
 
 ```sh
 npm run media -- --stage understand
@@ -67,6 +71,8 @@ npm run media -- --stage index
 索引阶段会更新发布副本的媒体库，建议在这个副本的开发服务启动前运行；它不会触及原开发目录。失败保留缓存，修复后重跑对应阶段，不先删除全库。
 
 不使用embedding时可跳过该阶段；索引会明确记录向量不可用，检索使用文本证据。已有视频编号不能无提示换成另一份视频；字幕或分析参数变更也需要人工确认并重建受影响缓存。
+
+完成后执行 `npm run doctor -- --stage index`。理解未完成、缺少剪辑代理或启用了向量但没有完整索引时，不应进入自动剪辑；不能把存在几个 JSON 文件当作入库成功。完成数量按实际清单判断，不要求11集。
 
 ## 4. 创建与验证剪辑
 

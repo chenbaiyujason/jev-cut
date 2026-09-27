@@ -240,7 +240,7 @@
       "origin": "backend",
       "sourcePath": "scripts/build-embeddings.mjs",
       "sourceHash": "2be23bcb0c4c4caa443863247d502f55cc71527e827e1b70672b2a164c4bbbb7",
-      "exportedHash": "2be23bcb0c4c4caa443863247d502f55cc71527e827e1b70672b2a164c4bbbb7"
+      "exportedHash": "1139802811d84c30b756c086be2550c1b4f7321932b3ae8749f261a2f513e7f4"
     },
     "apps/backend/scripts/build-local-text-index.mjs": {
       "origin": "backend",
@@ -270,7 +270,7 @@
       "origin": "backend",
       "sourcePath": "scripts/enrich-catalog.mjs",
       "sourceHash": "eb5b5e5ae68d6fd03014948d0a69ff68e6d52a6fd189d6b339db247006316cf2",
-      "exportedHash": "eb5b5e5ae68d6fd03014948d0a69ff68e6d52a6fd189d6b339db247006316cf2"
+      "exportedHash": "dfb1cbee4fed4c41f8a71df5e877a92e58b687a79b4659d5401e02171f4c6f1d"
     },
     "apps/backend/scripts/find_repeated_sequences.py": {
       "origin": "backend",
@@ -282,7 +282,7 @@
       "origin": "backend",
       "sourcePath": "scripts/prepare-editor-proxies.mjs",
       "sourceHash": "a9dbddda815374d4535082db869fb97e3574565296fa8edbe8bf34aa64fbbaf6",
-      "exportedHash": "a9dbddda815374d4535082db869fb97e3574565296fa8edbe8bf34aa64fbbaf6"
+      "exportedHash": "8340527225c1e9b88ca332ec91996c552d617985e6297e70ebd2b2c72f187906"
     },
     "apps/backend/scripts/prepare-global-evidence.py": {
       "origin": "backend",

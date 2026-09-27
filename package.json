@@ -3,7 +3,7 @@
   "version": "0.1.0-alpha.1",
   "private": true,
   "type": "module",
-  "engines": {"node": ">=22"},
+  "engines": {"node": ">=22.12"},
   "scripts": {
     "setup": "node tools/setup.mjs",
     "dev": "node tools/dev.mjs",
@@ -14,6 +14,7 @@
     "test:sync": "python -m unittest discover -s tests -p test_*.py",
     "test:backend": "npm --prefix apps/backend test",
     "build:editor": "npm --prefix apps/editor run build",
-    "media": "node tools/media-pipeline.mjs"
+    "media": "node tools/media-pipeline.mjs",
+    "doctor": "node tools/doctor.mjs"
   }
 }

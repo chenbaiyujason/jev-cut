@@ -1,3 +1,5 @@
+import {expectedCatalogEpisodes} from '../release-catalog.mjs';
+const expectedEpisodes=await expectedCatalogEpisodes();
 import {readFile,writeFile,mkdir,readdir,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -20,7 +22,7 @@ for(;;){
   for(const directory of (await readdir(catalogRoot)).filter(n=>/^episode-\d+$/.test(n)).sort()){
     let source;try{source=JSON.parse(await readFile(path.join(catalogRoot,directory,'enriched.json'),'utf8'));}catch{continue;}
     try{const prepared=JSON.parse(await readFile(path.join(catalogRoot,directory,'source.json'),'utf8'));source.thumbVersion=prepared.thumbVersion;}catch{}
-    if(source.semanticStatus!=='complete'||source.thumbVersion!==2||done.has(source.id))continue;
+    if(!expectedEpisodes.includes(source.episode)||source.semanticStatus!=='complete'||source.thumbVersion!==2||done.has(source.id))continue;
     source=filterRepeatedSequences([source],duplicateMetadata).sources[0];
     const file=path.join(catalogRoot,directory,'embeddings.json');let cached={rows:[]};
     try{const old=JSON.parse(await readFile(file,'utf8'));if(old.model===model)cached=old;}catch{}
@@ -41,9 +43,9 @@ for(;;){
     }
     done.set(source.id,{rows});
   }
-  if(done.size>=11||!watch)break;
+  if(done.size>=expectedEpisodes.length||!watch)break;
   await new Promise(r=>setTimeout(r,5000));
 }
 // Do not replace a complete searchable index with a partially refreshed one.
-if(done.size>=11)await saveIndex();
-await atomicJson(path.join(catalogRoot,'embedding-status.json'),{stage:done.size>=11?'Embedding 完成':'等待全库完成，保留已有索引',completedEpisodes:done.size,at:new Date().toISOString()});
+if(done.size>=expectedEpisodes.length)await saveIndex();else if(!watch)process.exitCode=1;
+await atomicJson(path.join(catalogRoot,'embedding-status.json'),{stage:done.size>=expectedEpisodes.length?'Embedding 完成':'等待全库完成，保留已有索引',completedEpisodes:done.size,at:new Date().toISOString()});

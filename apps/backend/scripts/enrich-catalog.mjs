@@ -1,3 +1,5 @@
+import {expectedCatalogEpisodes} from '../release-catalog.mjs';
+const expectedEpisodes=await expectedCatalogEpisodes();
 import {readFile,mkdir} from 'node:fs/promises';
 import path from 'node:path';
 import {preparedSources,chunksForSource,enrichChunk,applyChunk,atomicJson,catalogRoot} from '../catalog.mjs';
@@ -29,13 +31,14 @@ async function sourceWork(source){
   await publish();
 }
 for(;;){
-  const sources=await preparedSources();
+  const sources=(await preparedSources()).filter(s=>expectedEpisodes.includes(s.episode));
   for(const source of sources){if(done.has(source.episode))continue;
     if(!pilot){try{const old=JSON.parse(await readFile(path.join(catalogRoot,`episode-${String(source.episode).padStart(2,'0')}`,'enriched.json'),'utf8'));if(old.semanticStatus==='complete'){done.add(source.episode);state.completedEpisodes=done.size;continue;}}catch{}}
     try{await sourceWork(source);}catch(e){state.errors.push({episode:source.episode,message:e.message});state.stage='分析失败，已保留缓存与进度';await publish();process.exitCode=1;break;}
     if(pilot)break;
   }
-  if(process.exitCode||pilot||done.size>=11||!watch)break;
+  if(process.exitCode||pilot||done.size>=expectedEpisodes.length||!watch)break;
   await new Promise(r=>setTimeout(r,4000));
 }
-state.stage=process.exitCode?'需要修复后续跑':pilot?'小样本完成':done.size>=11?'11 集 Gemini 理解完成':'已准备素材理解完成';await publish();
+if(!pilot&&!watch&&done.size!==expectedEpisodes.length){process.exitCode=1;state.errors.push({message:'清单素材未全部完成，请检查本地准备及失败记录'});}
+state.stage=process.exitCode?'需要修复后续跑':pilot?'小样本完成':done.size>=expectedEpisodes.length?'全部清单素材 Gemini 理解完成':'已准备素材理解完成';await publish();

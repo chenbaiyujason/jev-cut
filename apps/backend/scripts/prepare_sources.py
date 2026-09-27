@@ -10,15 +10,20 @@ ROOT=Path(__file__).resolve().parents[1]
 def load_manifest(file):
     file=Path(file).resolve();data=json.loads(file.read_text(encoding='utf-8-sig'));ids=set()
     if not isinstance(data.get('videos'),list) or not data['videos']:raise ValueError('manifest.videos must be nonempty')
+    files=set()
     for item in data['videos']:
+        if not isinstance(item,dict) or not isinstance(item.get('file'),str) or not item['file'].strip():raise ValueError('Every video needs a nonempty file path')
         episode=item['episode']
-        if not isinstance(episode,int) or episode<1 or episode in ids:raise ValueError('episode must be a unique positive integer')
+        if isinstance(episode,bool) or not isinstance(episode,int) or episode<1 or episode in ids:raise ValueError('episode must be a unique positive integer')
         ids.add(episode)
         for key in ['file','subtitle']:
             if item.get(key):
                 p=(file.parent/item[key]).resolve()
                 if not p.is_file():raise ValueError(f'Missing {key} for source {episode}: {p}')
                 item[key]=str(p)
+        identity=os.path.normcase(item['file'])
+        if identity in files:raise ValueError('Duplicate video path in manifest')
+        files.add(identity)
     return data
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--manifest',required=True);p.add_argument('--dry-run',action='store_true');args=p.parse_args();manifest=load_manifest(args.manifest)

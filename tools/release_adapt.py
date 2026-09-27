@@ -23,6 +23,26 @@ def adapt(dest, data):
         text=text.replace('expectedEpisodes:11','expectedEpisodes:expectedSourceCount(library)')
         text=text.replace('全11集','全量素材').replace('/11 集','/全部素材').replace('完整11集','完整素材库')
     if dest=='apps/backend/planning.mjs': text=text.replace('完整11集','完整素材库')
+    if dest in ['apps/backend/scripts/enrich-catalog.mjs','apps/backend/scripts/build-embeddings.mjs']:
+        if 'done.size>=11' not in text: raise ValueError('Catalog completion hook changed; review adaptation')
+        text="import {expectedCatalogEpisodes} from '../release-catalog.mjs';\nconst expectedEpisodes=await expectedCatalogEpisodes();\n"+text
+        text=text.replace('done.size>=11','done.size>=expectedEpisodes.length').replace('11 集 Gemini 理解完成','全部清单素材 Gemini 理解完成')
+        if dest.endswith('enrich-catalog.mjs'):
+            text=text.replace('const sources=await preparedSources();','const sources=(await preparedSources()).filter(s=>expectedEpisodes.includes(s.episode));')
+            text=text.replace("state.stage=process.exitCode?", "if(!pilot&&!watch&&done.size!==expectedEpisodes.length){process.exitCode=1;state.errors.push({message:'清单素材未全部完成，请检查本地准备及失败记录'});}\nstate.stage=process.exitCode?")
+        else:
+            text=text.replace("if(source.semanticStatus!=='complete'", "if(!expectedEpisodes.includes(source.episode)||source.semanticStatus!=='complete'")
+            text=text.replace('if(done.size>=expectedEpisodes.length)await saveIndex();','if(done.size>=expectedEpisodes.length)await saveIndex();else if(!watch)process.exitCode=1;')
+    if dest=='apps/backend/scripts/prepare-editor-proxies.mjs':
+        text=text.replace('{readFile,writeFile,stat,rename}', '{readFile,writeFile,stat,rename,mkdir}')
+        old="const library=JSON.parse(await readFile('.local/library.json','utf8'));"
+        if old not in text: raise ValueError('Editor proxy input hook changed; review adaptation')
+        text=text.replace(old,"import {preparedSources} from '../catalog.mjs';\nimport {expectedCatalogEpisodes} from '../release-catalog.mjs';\nconst expected=await expectedCatalogEpisodes();\nconst library=process.argv.includes('--catalog')?{sources:(await preparedSources()).filter(s=>expected.includes(s.episode))}:JSON.parse(await readFile('.local/library.json','utf8'));")
+        gpu=next(line for line in text.splitlines() if "await run('ffmpeg'," in line)
+        cpu=gpu.replace("'h264_nvenc'","'libx264'").replace("'-preset','p2','-rc','vbr','-cq','24','-b:v','0'","'-preset','veryfast','-crf','24'")
+        if cpu==gpu or "'h264_nvenc'" in cpu: raise ValueError('Editor proxy codec hook changed')
+        text=text.replace(gpu,"      if(process.argv.includes('--cpu')) {\n"+cpu+'\n      } else {\n      try {\n'+gpu+'\n      } catch {\n'+cpu+'\n      }\n      }')
+        text=text.replace("await writeFile('.local/studio/verification/motion/editor-proxies.json'", "await mkdir('.local/studio/verification/motion',{recursive:true});\nawait writeFile('.local/studio/verification/motion/editor-proxies.json'")
     if dest=='apps/backend/production-menu.mjs':
         text,count=re.subn(r'^const defaults=\[.*?\];$', 'const defaults=[];',text, count=1, flags=re.M)
         if count!=1: raise ValueError('production menu defaults changed; review adaptation')

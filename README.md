@@ -114,7 +114,7 @@ flowchart LR
 
 ## 快速开始
 
-准备 Node.js 22+、Python 3.11+、FFmpeg 和现代 Chromium 浏览器。
+准备 Node.js 22.12+（推荐24）、Python 3.12+（本机验证3.13）、FFmpeg 和现代 Chromium 浏览器。
 
 ```sh
 git clone https://github.com/chenbaiyujason/jev-cut.git
@@ -127,6 +127,8 @@ npm run dev
 打开 `http://127.0.0.1:8796/mad`。首次可以启动空工程；自动剪辑前，需要按 [安装与素材准备](docs/SETUP.md) 建立自己的素材索引，再导入音乐，从项目菜单进入“从音乐新建剪辑”。
 
 交给 Agent 准备素材时，使用 [jev-mad-production Skill](skills/jev-mad-production/SKILL.md)：从取得本地视频之后，完成字幕对齐、镜头切分、压缩代理、多模态理解、索引与抽样检查。
+
+可以直接交代 Agent：“读取 `skills/jev-mad-production/SKILL.md`，先配置环境并运行 doctor，再用我的素材清单做本地处理和理解小样本，通过后建立全库索引。”需要提供素材路径，以及自己的理解／embedding／jev 服务配置位置。完整命令与各阶段完成条件见 [执行手册](skills/jev-mad-production/references/operations.md)。
 
 ## 继续了解
 
