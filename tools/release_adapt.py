@@ -50,4 +50,4 @@ def adapt(dest, data):
     if dest=='apps/editor/vite.config.ts':
         text=text.replace('const oxlintConfig =', "const apiTarget = process.env.JEV_API_URL || 'http://127.0.0.1:8794'\n\nconst oxlintConfig =")
         text=text.replace("target: 'http://127.0.0.1:8794'",'target: apiTarget').replace('port: 8796','port: Number(process.env.JEV_EDITOR_PORT || 8796)')
-    return text.encode('utf-8')
+    return text.replace('\r\n','\n').encode('utf-8')

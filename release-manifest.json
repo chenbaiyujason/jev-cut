@@ -36,7 +36,7 @@
       "origin": "backend",
       "sourcePath": "director-edit.mjs",
       "sourceHash": "90a2315d4e520f0493ae9d2e4b1b64289def4c4e7776e565a662f593f2e8e8f9",
-      "exportedHash": "90a2315d4e520f0493ae9d2e4b1b64289def4c4e7776e565a662f593f2e8e8f9"
+      "exportedHash": "03c581320df68cbb0bd93c600418373deaa3a7e6b3aed3663826510c0f80ff4d"
     },
     "apps/backend/director-live.mjs": {
       "origin": "backend",
@@ -78,7 +78,7 @@
       "origin": "backend",
       "sourcePath": "global-director.mjs",
       "sourceHash": "f2152a79bfdb04fcdce38ed2f8178abfbcfe7059e9ae9b1e8f036f28432b501c",
-      "exportedHash": "f2152a79bfdb04fcdce38ed2f8178abfbcfe7059e9ae9b1e8f036f28432b501c"
+      "exportedHash": "596765f4ab3f910a3e735d83c12a6421bcf19714db225d130b4288ecfb628e0f"
     },
     "apps/backend/global-evidence.mjs": {
       "origin": "backend",
@@ -120,13 +120,13 @@
       "origin": "backend",
       "sourcePath": "planning.mjs",
       "sourceHash": "afcf48241a6650143258771cd6bc0f3084d7449c4d3b0220b5c047e09aa6f274",
-      "exportedHash": "3c1765401838cfe21bfbe3ec0b78e28a8fe2b5c696c5221abe9fa2f05991628d"
+      "exportedHash": "88fddf0eec938f27b34d51e938cf6edcefa378c333901df27aa593a21ab2e287"
     },
     "apps/backend/progressive-generation.mjs": {
       "origin": "backend",
       "sourcePath": "progressive-generation.mjs",
       "sourceHash": "900668e5bf3ca6390dce711c7acbce31a7ff8e8c2c4aa274424c05aec839bc36",
-      "exportedHash": "08f9fb662d7be19739db63bb7c07c15dc6478cfead6dc287e9892bc95d514014"
+      "exportedHash": "34f307d056b752ffef9f4e20927c1d0a057462b1e5425a07a47a33d51516306e"
     },
     "apps/backend/recall-pruning.mjs": {
       "origin": "backend",
@@ -294,7 +294,7 @@
       "origin": "backend",
       "sourcePath": "studio-api.mjs",
       "sourceHash": "27c23cdb047abea511ab6ed7b781246737a5dcaa1af4e4a819f4751982a54ad0",
-      "exportedHash": "c9de6bf7fcc7a8e5c3e51dcaa1d8d0b2a9fd62737cf30f063f7cd663c0e2bc75"
+      "exportedHash": "b24bb31d692437a5152337372b835ab965b5ff84b91e1756774a33f2ca5f58a4"
     },
     "apps/backend/studio-project.mjs": {
       "origin": "backend",
@@ -336,7 +336,7 @@
       "origin": "backend",
       "sourcePath": "tests/director-edit.test.mjs",
       "sourceHash": "9960fe50c21bcd83eff5d48c7201047d75fafe2f60061b6b9e47ab97d10f5114",
-      "exportedHash": "9960fe50c21bcd83eff5d48c7201047d75fafe2f60061b6b9e47ab97d10f5114"
+      "exportedHash": "6ee7fb1e339cf353c46c0860b45b38e495930cc81c15b000ee3009b386e1aa75"
     },
     "apps/backend/tests/director-live.test.mjs": {
       "origin": "backend",
@@ -432,7 +432,7 @@
       "origin": "backend",
       "sourcePath": "winnow.mjs",
       "sourceHash": "67492c2777ad6fa7a6c2ac3c81926ec185e9512e552b2191eb8ca54f7006a7da",
-      "exportedHash": "b0ebefbf2fac30f67f9f4f400e7e8f390714d00a4c30cb2d4e372fdee0e6f564"
+      "exportedHash": "d5912d462b3762190ca489545dc3c95580e449bea7eab5254322fa9ed073ae14"
     },
     "apps/editor/.editorconfig": {
       "origin": "editor",
@@ -4914,7 +4914,7 @@
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/bridge.ts",
       "sourceHash": "d374ad9694e050ec4b745dba5be8e2a8a48bb564102eae624dbd1830dfe4a774",
-      "exportedHash": "d374ad9694e050ec4b745dba5be8e2a8a48bb564102eae624dbd1830dfe4a774"
+      "exportedHash": "3cf47adc5ce25feb1b94f0d628e5a6c218b66f048b0cc712e68679a0a9cdb9e9"
     },
     "apps/editor/src/features/mad-studio/decision-panel.tsx": {
       "origin": "editor",
@@ -4932,7 +4932,7 @@
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/jev-chrome.tsx",
       "sourceHash": "dc4715e7c3bbe397356ab3263600c16497be9e14792ed31eba229347d3d19487",
-      "exportedHash": "dc4715e7c3bbe397356ab3263600c16497be9e14792ed31eba229347d3d19487"
+      "exportedHash": "13f83704e50e9ea08f107d3cb7c4893561fc2fdf9ea86db5003964334e5a758f"
     },
     "apps/editor/src/features/mad-studio/jev-label.ts": {
       "origin": "editor",
@@ -13548,7 +13548,7 @@
       "origin": "editor",
       "sourcePath": "src/integrations/jizura/vendor/LICENSE",
       "sourceHash": "e06f8ce76d69c5a8f3e438a3ca8cc81c6621c93bac22aaaeec1f4c36330cbe99",
-      "exportedHash": "e06f8ce76d69c5a8f3e438a3ca8cc81c6621c93bac22aaaeec1f4c36330cbe99"
+      "exportedHash": "15183bfbec774052a5817a28eb03730c40ec941a642097b597f0c50092594adb"
     },
     "apps/editor/src/integrations/jizura/vendor/ORIGIN.md": {
       "origin": "editor",
@@ -13566,7 +13566,7 @@
       "origin": "editor",
       "sourcePath": "src/integrations/jizura/vendor/engine.js",
       "sourceHash": "fc30bf5bf5e47d446b6d6c35a11d31f909a579b2312c51f525e00408db0b8fa0",
-      "exportedHash": "fc30bf5bf5e47d446b6d6c35a11d31f909a579b2312c51f525e00408db0b8fa0"
+      "exportedHash": "a0e086b7c306eb29b97502b666f422784f9739cb8205ebd23bd98d0e68a631d0"
     },
     "apps/editor/src/main.tsx": {
       "origin": "editor",
