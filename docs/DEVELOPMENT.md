@@ -43,16 +43,14 @@ python tools/sync-workspace.py --apply
 ```sh
 npm run sync
 npm run audit
-npm test
-npm run test:sync
-npm run test:backend
-npm run build:editor
 git diff --stat
 git diff
 git add .
 git commit -m "Update jev editing snapshot"
 git push
 ```
+
+按实际改动范围验证，不默认跑全套测试或构建。文档更新检查链接；普通同步审查差异和发布审计；改动关键逻辑时运行相关测试，改动依赖或构建配置时再进行构建。上述 `git add .` 仅在确认工作区所有变更都属于本次发布后使用，否则指定文件。
 
 `release-manifest.json` 记录来源相对路径和哈希。`.sync` 中的源机器绝对路径、待合并文件与快照不提交。首次公开前再核对 `.local`、媒体、字幕、权重、密钥和私人截图没有进入 Git；`npm run audit` 会检查这些边界，但不等于通用秘密检测服务。
 

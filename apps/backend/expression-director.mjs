@@ -57,12 +57,13 @@ function splitRemapped(project,item,plan){
 }
 
 /** Accent-level expressive decisions; all options are compiled before Winnow sees them. */
-export async function directExpression({project,library,resources,events,ask,onProgress=()=>{},allowRemap=true}){
+export async function directExpression({project,library,resources,events,ask,onProgress=()=>{},allowRemap=true,allowTransitions=false}){
  const started=performance.now();let p=structuredClone(project);p.timeline.keyframes??=[];p.timeline.transitions??=[];
  const fps=p.metadata.fps,map=new Map(resources.shots.map(s=>[s.id,s])),videos=p.timeline.items.filter(i=>i.type==='video').sort((a,b)=>a.from-b.from),decisions=[],remaps=[];
  const anchors=[];for(const event of [...events.primaryAccents].filter(e=>e.time<project.duration-.15).sort((a,b)=>b.strength-a.strength)){if(anchors.every(a=>Math.abs(a.time-event.time)>.75))anchors.push(event);}anchors.sort((a,b)=>a.time-b.time);
  const animated=new Set(),transitionItems=new Set();
- for(const anchor of anchors){
+ // User-reviewed A/B preference: automatic expression defaults to action timing only.
+ for(const anchor of allowTransitions?anchors:[]){
   const item=videos.find(i=>Math.abs(i.from/fps-anchor.time)<.085)||videos.find(i=>i.from/fps<=anchor.time&&end(i)/fps>anchor.time);if(!item||item.locked||animated.has(item.id))continue;
   const index=videos.findIndex(i=>i.id===item.id),left=videos[index-1],peak=Math.round(anchor.time*fps)-item.from,shot=map.get(item.mad?.shotId);if(!shot)continue;
   const candidates={clean:{description:'保留自然动作，不增加画面扰动',ops:[]}};

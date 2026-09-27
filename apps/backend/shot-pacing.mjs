@@ -21,3 +21,9 @@ export function applyShotDecision(project,selected,shots){
  const extended={...previous,durationInFrames:previous.durationInFrames+item.durationInFrames,sourceEnd:item.sourceEnd,mad:{...previous.mad,extensions:[...(previous.mad?.extensions||[]),{at:item.from,addedFrames:item.durationInFrames,sourceEnd:item.sourceEnd}]}};
  return {project:{...project,timeline:{...project.timeline,items:items.map(i=>i.id===targetId?extended:i)}},action:'extend',occurrenceId:targetId};
 }
+
+export function trimProjectPrefix(project,duration){
+ const fps=project.metadata.fps,end=Math.round(duration*fps),p=structuredClone(project);p.duration=duration;
+ p.timeline.items=p.timeline.items.filter(i=>i.from<end).map(i=>{const frames=Math.min(i.durationInFrames,end-i.from);if(frames===i.durationInFrames)return i;return {...i,durationInFrames:frames,sourceEnd:Number.isFinite(i.sourceStart)?Math.min(i.sourceEnd,i.sourceStart+Math.ceil(frames*(i.sourceFps||fps)*(i.speed||1)/fps)):i.sourceEnd};});
+ const ids=new Set(p.timeline.items.map(i=>i.id));p.timeline.transitions=(p.timeline.transitions||[]).filter(t=>ids.has(t.leftClipId)&&ids.has(t.rightClipId));p.timeline.keyframes=(p.timeline.keyframes||[]).filter(k=>ids.has(k.itemId));return p;
+}

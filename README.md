@@ -10,25 +10,27 @@
 
 ## 效果展示
 
-以下位置将放入真实的 **16:9 成片**，目前视频待补充。
-
-### 01 · 跟着音乐剪出情绪
-
-跨集选镜，将人物、动作与情绪组织进音乐段落，观察重音落点、镜头疏密，以及台词和原声的使用。
+同一套动漫素材、同一主角 **晓美焰**，对比五段不同配乐的前半段剪辑。全部为 **16:9 · 960×540 · H.264 / AAC**，点击封面获取 MP4（浏览器可能直接播放或下载）。
 
 <!-- showcase:main:start -->
-> 🎬 成片待上传 · 16:9
+### 原始 M4A · 30.5 秒
+
+[![原始 M4A · 点击查看成片](docs/assets/showcase/original-m4a.jpg)](https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/original-m4a.mp4)<br>**原始 M4A · 30.5 秒**<br>逆规叛道者
 <!-- showcase:main:end -->
 
-### 02 · 换一首音乐，换一种表达
-
-用同一套素材，对比不同音乐或剪辑目标下的选镜、顺序与节奏。每段视频会附上实际输入和版本信息，方便对应效果。
-
 <!-- showcase:comparison:start -->
-> 🎬 对比成片待上传 · 16:9
+| 红色高跟鞋 | 回马枪 |
+|---|---|
+| [![红色高跟鞋 · 点击查看成片](docs/assets/showcase/red-high-heels.jpg)](https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/red-high-heels.mp4)<br>**红色高跟鞋 · 30.4 秒**<br>军械走私狂潮 | [![回马枪 · 点击查看成片](docs/assets/showcase/huimaqiang.jpg)](https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/huimaqiang.mp4)<br>**回马枪 · 15.5 秒**<br>破阵行 |
+
+| 梦的翅膀受了伤 | 一笑江湖 |
+|---|---|
+| [![梦的翅膀受了伤 · 点击查看成片](docs/assets/showcase/wounded-wings.jpg)](https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/wounded-wings.mp4)<br>**梦的翅膀受了伤 · 21.1 秒**<br>重构的节拍 | [![一笑江湖 · 点击查看成片](docs/assets/showcase/yixiao-jianghu.jpg)](https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/yixiao-jianghu.mp4)<br>**一笑江湖 · 14.3 秒**<br>异质齿轮的狂诞步调 |
 <!-- showcase:comparison:end -->
 
-后续视频接入方式见 [演示视频维护指南](docs/SHOWCASE.md)。
+[全部 5 个视频附件](https://github.com/chenbaiyujason/jev-cut/releases/tag/showcase-2026-09-27) · [版本与视频信息](docs/showcase.json) · [展示维护指南](docs/SHOWCASE.md)
+
+标题来自本批次的自动主题规划。示例成片与源码分别存放，媒体不属于 MIT 源码授权范围。
 
 ## 可以怎么用
 

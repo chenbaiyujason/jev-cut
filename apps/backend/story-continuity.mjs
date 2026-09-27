@@ -16,11 +16,11 @@ export function storyContext(project,item,shots,goal=''){
   const attack=f=>/开火|射击|发射|挥|引爆|扣动|迎击|突进/.test((f.actions||[]).map(a=>a.action).join(' '));
   const milestones=[['relationship',shown.find(relation)],['battle',shown.find(attack)],['setback',shown.find(f=>/受伤|流血|带血|倒地|哭泣|绝望/.test(f.description||''))],['recentRelationship',shown.findLast(relation)]].filter(([,f])=>f).map(([kind,f])=>({kind,at:f.at,shotId:f.shotId,evidence:f.description}));
   const nextNeeds=[],prev=history.at(-1),lastRelation=shown.findLast(relation),now=item.from/project.metadata.fps;
-  if(/守护|保护|拯救/.test(goal)&&(!lastRelation||now-lastRelation.at>6))nextNeeds.push({kind:'show-protection',query:'交代被保护的人与守护者的同框关系，救援、挡在身前、拉住或扶起。',basis:lastRelation?'保护关系已超过6秒未出现':'尚未展示保护关系，不可仅凭主题宣称观众已看懂'});
+  if(/守护|保护|拯救/.test(goal)&&(!lastRelation||now-lastRelation.at>6))nextNeeds.push({kind:'show-protection',query:'两人同框，救援、挡在身前、拉住、抱起或扶起，交代保护关系。',basis:lastRelation?'保护关系已超过6秒未出现':'尚未展示保护关系，不可仅凭主题宣称观众已看懂'});
   const unfinished=prev?.actions?.filter(a=>a.confidence>=.65&&!a.completionInWindow&&/跑|跃|挥|开火|射击|发射|引爆|抱起|拉住|转身/.test(a.action||''))||[];
   if(unfinished.length)nextNeeds.push({kind:'finish-action',query:'继续真实动作直至完成，或用方向可接的镜头呈现动作结果。',basis:unfinished.map(a=>a.action).join('；')});
   else if(prev&&attack(prev))nextNeeds.push({kind:'show-result',query:'呈现刚才攻击的命中、防御、敌人反应或被保护者的结果。',basis:prev.description});
-  if(reactionRun>=2)nextNeeds.push({kind:'advance-event',query:'用真实行动或人物关系推进事件，避免再堆同类眼神。',basis:`已经连续${reactionRun}镜为反应特写`});
+  if(reactionRun>=2)nextNeeds.push({kind:'advance-event',query:'拔枪、举枪开火、奔跑迎击、伸手拉住、抱起救援；选择可以推进当前事件的真实行动。',basis:`已经连续${reactionRun}镜为反应特写`});
   if(!nextNeeds.length)nextNeeds.push({kind:before.length?'develop-event':'establish',query:before.length?'接续当前小事件，补动作对象、准备、结果或明确情绪回应。':'建立保护对象与威胁，音乐起势时进入真实行动。',basis:prev?.description||'尚未展示任何画面'});
   const recentDurations=before.slice(-4).map(i=>+(i.durationInFrames/project.metadata.fps).toFixed(2));
   return {history,reactionRun,sceneRun,previous:prev,milestones,nextNeeds:nextNeeds.slice(0,2),recentDurations,evidencePolicy:'milestones来自已选窗口的素材标注，是可见证据线索，不是自动成立的因果。nextNeeds是待补信息建议，只需选一项推进；不能捏造镜头之外的剧情。',instruction:'每2–4镜组成一个可读的小事件：对象/威胁→准备→行动→结果或反应。优先解决nextNeeds中的一项，再考虑新的主题相似画面。动作可在一镜完成，也可跨镜衔接。结合最近持镜时长与音乐句子制造快慢反差，不要持续等长。跨场景是省略或联想，不得凭人物相同声称真实空间连续。'};

@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "snapshot": "20260927-183905-172500",
+  "snapshot": "20260927-184537-943400",
   "files": {
     "apps/backend/catalog.mjs": {
       "origin": "backend",
@@ -71,8 +71,8 @@
     "apps/backend/expression-director.mjs": {
       "origin": "backend",
       "sourcePath": "expression-director.mjs",
-      "sourceHash": "ffb86d71233344a616f230c2c72aad8f69855ceead8fd27ffbbff74e367b363f",
-      "exportedHash": "c24390612bb9b8b7c05c24f4e2da707686a739199b200eab1f31f9611b6e0c31"
+      "sourceHash": "519584d6f1397d4a56a89ef3070f7a02f6ae11f3d6b8ec7fc19a2b779b8da4d9",
+      "exportedHash": "1025bf9262fd2771bee4e94c75fee276063051040585e6eb7eaed0a8859261f9"
     },
     "apps/backend/gemini-stream.mjs": {
       "origin": "backend",
@@ -95,8 +95,8 @@
     "apps/backend/global-director.mjs": {
       "origin": "backend",
       "sourcePath": "global-director.mjs",
-      "sourceHash": "9252866cf47d68a7d939a31fa7817f33a64812e25f84a5bf458e171d77ce4cad",
-      "exportedHash": "0813166a2a8cb1913358417083098a638fe789c363a8f85e0345fc839198eb41"
+      "sourceHash": "6c8eb196ad8d4dac2feb9cb480b6d1c26ba652104bd822436033d1cd80e0cdc3",
+      "exportedHash": "9369aaf03cfd5a2589ec374f321e0c5f5c30f418eb7ce0de0ad6192671f65bf7"
     },
     "apps/backend/global-evidence.mjs": {
       "origin": "backend",
@@ -113,8 +113,8 @@
     "apps/backend/global-sequence.mjs": {
       "origin": "backend",
       "sourcePath": "global-sequence.mjs",
-      "sourceHash": "bedc2981e19765af3da836b5945eec8c5f3e2964da08cad5bbbcd9192b03e52b",
-      "exportedHash": "0b55ecc149abc3ce25971ee5bc0e8b49fc68205cbcb8025afbee8e7a126885dd"
+      "sourceHash": "fe86f1fb150a15d12b108b78c692d536e75fd23a022847a88a5b90f7be935044",
+      "exportedHash": "6cf74f1e97c31f983144d918fb38a40bb29d00746e3f9537b4cf279be661a30b"
     },
     "apps/backend/local-embeddings.mjs": {
       "origin": "backend",
@@ -329,8 +329,8 @@
     "apps/backend/shot-pacing.mjs": {
       "origin": "backend",
       "sourcePath": "shot-pacing.mjs",
-      "sourceHash": "9f196ce4e62f261b648a25a2a3b009a80750872ee37838a61a70c7e40c066c1c",
-      "exportedHash": "9f196ce4e62f261b648a25a2a3b009a80750872ee37838a61a70c7e40c066c1c"
+      "sourceHash": "3394841d5dbebcc354f31dcbaa03b0b40a1b4af6fd44ba350add99f98cbf3859",
+      "exportedHash": "3394841d5dbebcc354f31dcbaa03b0b40a1b4af6fd44ba350add99f98cbf3859"
     },
     "apps/backend/source-sound.mjs": {
       "origin": "backend",
@@ -341,8 +341,8 @@
     "apps/backend/story-continuity.mjs": {
       "origin": "backend",
       "sourcePath": "story-continuity.mjs",
-      "sourceHash": "4be7cbf3312f43106505bf0ae52844fd9c4b2b15c46ded4b2b7d3c56c75fe821",
-      "exportedHash": "4be7cbf3312f43106505bf0ae52844fd9c4b2b15c46ded4b2b7d3c56c75fe821"
+      "sourceHash": "db3b6a8679bcc6d16bd4546658058dde972b5e823872ff0023f753e3b52f7784",
+      "exportedHash": "db3b6a8679bcc6d16bd4546658058dde972b5e823872ff0023f753e3b52f7784"
     },
     "apps/backend/studio-api.mjs": {
       "origin": "backend",
