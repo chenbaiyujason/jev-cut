@@ -1,0 +1,8 @@
+librosa==1.0.0
+numpy==2.5.3
+soundfile==0.14.0
+faster-whisper==1.2.1
+Pillow>=11,<13
+scenedetect==0.7.1
+
+opencv-python-headless>=4.10

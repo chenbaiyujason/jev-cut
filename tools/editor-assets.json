@@ -1,0 +1,24 @@
+{
+  "source": "FreeCut bundled optional upscale models",
+  "revision": "4d62e8082c5eb387a96275bcbd323d28f6e41a62",
+  "files": [
+    {
+      "path": "apps/editor/src/infrastructure/upscale/models/anime4k_cnn_2x_m_3d.onnx",
+      "url": "https://raw.githubusercontent.com/walterlow/freecut/4d62e8082c5eb387a96275bcbd323d28f6e41a62/src/infrastructure/upscale/models/anime4k_cnn_2x_m_3d.onnx",
+      "sha256": "e3377d46773cd28dd7b612e8c493a177b87dfe01cf37e14a409bc49aa36cafb7",
+      "bytes": 12860
+    },
+    {
+      "path": "apps/editor/src/infrastructure/upscale/models/anime4k_cnn_2x_m_an.onnx",
+      "url": "https://raw.githubusercontent.com/walterlow/freecut/4d62e8082c5eb387a96275bcbd323d28f6e41a62/src/infrastructure/upscale/models/anime4k_cnn_2x_m_an.onnx",
+      "sha256": "8820420b98523a3f91d6fe02dc7e89e20b8e39534cbbbad3d15069a30d7aea49",
+      "bytes": 12860
+    },
+    {
+      "path": "apps/editor/src/infrastructure/upscale/models/anime4k_cnn_2x_m_rl.onnx",
+      "url": "https://raw.githubusercontent.com/walterlow/freecut/4d62e8082c5eb387a96275bcbd323d28f6e41a62/src/infrastructure/upscale/models/anime4k_cnn_2x_m_rl.onnx",
+      "sha256": "fdfafae2dc7d8ee264ec4b144722b9fdf1211324a9cea71727bf3784204583b9",
+      "bytes": 12860
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "jev-cut",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "setup": "node tools/setup.mjs",
+    "dev": "node tools/dev.mjs",
+    "sync:check": "python tools/sync-workspace.py",
+    "sync": "python tools/sync-workspace.py --apply",
+    "audit": "python tools/audit-release.py",
+    "test": "node --test tests/*.test.mjs",
+    "test:sync": "python -m unittest discover -s tests -p test_*.py",
+    "test:backend": "npm --prefix apps/backend test",
+    "build:editor": "npm --prefix apps/editor run build",
+    "media": "node tools/media-pipeline.mjs"
+  }
+}

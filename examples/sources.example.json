@@ -1,0 +1,7 @@
+{
+  "collection": "My licensed footage",
+  "videos": [
+    {"episode": 1, "file": "raw/episode-01.mkv", "subtitle": "raw/episode-01.srt", "language": "ja"},
+    {"episode": 2, "file": "raw/episode-02.mp4", "language": "ja"}
+  ]
+}

@@ -1,0 +1,28 @@
+name: Validate release snapshot
+on: [push, pull_request]
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm --prefix apps/backend ci --ignore-scripts
+      - run: npm test
+      - run: npm run test:sync
+      - run: npm run test:backend
+      - run: npm run audit
+  editor-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm --prefix apps/editor ci --ignore-scripts
+      - run: node tools/download-editor-assets.mjs
+      - run: npm run build:editor

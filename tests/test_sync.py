@@ -1,0 +1,31 @@
+import importlib.util
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
+spec=importlib.util.spec_from_file_location('syncer',Path(__file__).resolve().parents[1]/'tools/sync-workspace.py');sync=importlib.util.module_from_spec(spec);spec.loader.exec_module(sync)
+
+class SyncTests(unittest.TestCase):
+    def test_source_change_updates_clean_export(self):
+        with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
+            root=Path(folder);(root/'code.js').write_bytes(b'old');base={'code.js':{'exportedHash':sync.digest(b'old')}};incoming={'code.js':({'exportedHash':sync.digest(b'new')},b'new')}
+            updates,conflicts,kept=sync.changes(incoming,base,root);self.assertEqual(updates,[('code.js',b'new')]);self.assertFalse(conflicts)
+    def test_release_only_edit_survives(self):
+        with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
+            root=Path(folder);(root/'code.js').write_bytes(b'release patch');old=sync.digest(b'old');updates,conflicts,kept=sync.changes({'code.js':({'exportedHash':old},b'old')},{'code.js':{'exportedHash':old}},root);self.assertFalse(updates);self.assertFalse(conflicts);self.assertEqual(kept,['code.js'])
+    def test_both_sides_changed_is_conflict(self):
+        with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
+            root=Path(folder);(root/'code.js').write_bytes(b'release patch');updates,conflicts,_=sync.changes({'code.js':({'exportedHash':sync.digest(b'new')},b'new')},{'code.js':{'exportedHash':sync.digest(b'old')}},root);self.assertFalse(updates);self.assertEqual(conflicts,['code.js']);self.assertEqual((root/'code.js').read_bytes(),b'release patch')
+    def test_deletion_does_not_erase_release_edits(self):
+        with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
+            root=Path(folder);(root/'code.js').write_bytes(b'edited');updates,conflicts,_=sync.changes({},{'code.js':{'exportedHash':sync.digest(b'old')}},root);self.assertFalse(updates);self.assertEqual(conflicts,['code.js'])
+    def test_private_assets_and_paths_excluded(self):
+        for path in ['.local/state.json','localdevenv/.env','x/film.mp4','x/model.pth','node_modules/a.js','.env']:
+            self.assertFalse(sync.permitted(path),path)
+        self.assertTrue(sync.permitted('src/feature.tsx'))
+        with self.assertRaises(ValueError):sync.destination(Path.cwd(),'../outside')
+    def test_owned_files_not_managed(self):
+        with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
+            root=Path(folder);(root/'README.md').write_text('owned');self.assertEqual(sync.changes({}, {}, root),([],[],[]));self.assertEqual((root/'README.md').read_text(),'owned')
+if __name__=='__main__':unittest.main()
