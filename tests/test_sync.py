@@ -7,6 +7,12 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 spec=importlib.util.spec_from_file_location('syncer',Path(__file__).resolve().parents[1]/'tools/sync-workspace.py');sync=importlib.util.module_from_spec(spec);spec.loader.exec_module(sync)
 
 class SyncTests(unittest.TestCase):
+    def test_public_showcase_media_is_an_exact_allowlist(self):
+        from sync_workspace_policy import forbidden_path
+        self.assertTrue(sync.permitted('pitch/showcase/sayaka-wings.mp4'))
+        self.assertFalse(sync.permitted('pitch/showcase/raw-episode.mp4'))
+        self.assertFalse(forbidden_path('docs/pitch/showcase/homura-fate.mp4'))
+        self.assertTrue(forbidden_path('docs/pitch/showcase/raw-episode.mp4'))
     def test_release_allows_only_named_changelog_source_data(self):
         from sync_workspace_policy import forbidden_path
         for name in ['changelog.json','changelog-types.ts']:

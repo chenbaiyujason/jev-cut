@@ -1,6 +1,8 @@
 from pathlib import PurePosixPath
 def forbidden_path(name):
     p=PurePosixPath(name)
+    if p.as_posix() in {'docs/pitch/showcase/sayaka-wings.mp4','docs/pitch/showcase/homura-fate.mp4'}:
+        return False
     if p.as_posix() in {'apps/editor/src/data/changelog.json','apps/editor/src/data/changelog-types.ts'}:
         return False
     private={'.local','.sync','localdevenv','node_modules','data','artifacts','.mad-workspace','.mad-state','__pycache__'}

@@ -203,7 +203,7 @@
         <div class="mini rv" data-t="58.4"><img src="assets/feat-06.jpg" alt=""><b>宣发 03</b><span>暖 · 带她回家</span></div>
       </div>
     </div>
-    <div class="cta rv" data-t="59.2"><small>NEXT</small><span>实机演示</span><i>→</i></div>
+    <a class="cta rv" data-t="59.2" href="#films"><small>NEXT</small><span>看成片，拆解每一刀</span><i>→</i></a>
   </section>
 
   <div id="grain"></div>
@@ -222,5 +222,38 @@
 <script src="assets/data.js"></script>
 <script src="assets/textures.js"></script>
 <script src="pitch.js"></script>
+<a class="screening-shortcut" href="#films">作品放映室 <span>↗</span></a>
+<dialog id="screening" aria-labelledby="screening-title">
+  <div class="screening-shell">
+    <header class="screening-nav"><a href="https://github.com/chenbaiyujason/jev-cut" target="_blank" rel="noopener">jev<span>剪辑 / SCREENING ROOM</span></a><button id="screening-close" type="button">返回演示 <span>↙</span></button></header>
+    <div class="screening-heading"><div><p class="screening-kicker">FROM INTENT TO EVERY CUT</p><h2 id="screening-title">看成片，<em>也看每一刀。</em></h2></div><p>一个人物的不同经历，如何连成一段情绪。<br>完整播放 · 镜头溯源 · 真实决策回放</p></div>
+    <nav id="film-list" aria-label="选择作品"></nav>
+    <div id="screening-error" role="alert" hidden></div>
+    <div id="film-content" hidden>
+      <div class="screening-grid">
+        <div class="screening-main">
+          <div class="film-player"><video id="film-video" controls playsinline preload="metadata" aria-label="作品播放器"></video><div id="video-error" hidden>视频暂时无法播放，可使用下方下载入口。</div></div>
+          <div class="film-caption"><div><h3 id="film-title"></h3><p id="film-summary"></p></div><a id="film-download" download>下载 MP4 ↗</a></div>
+          <div class="film-timeline"><div class="timeline-label"><span>音乐与镜头</span><span id="film-clock">00:00 / 00:00</span></div><div id="film-wave" aria-hidden="true"></div><div id="film-cuts" aria-label="点击镜头跳转"></div><div id="film-chapters" aria-label="段落导航"></div></div>
+          <section class="film-prompt"><div class="timeline-label"><label for="film-prompt-text">当时的输入</label><button id="copy-prompt" type="button">复制输入 ↗</button></div><textarea id="film-prompt-text" readonly rows="4"></textarea><p>保存于工程的原始目标。这里回放已生成的结果；修改目标与重新生成请使用本地工作台。</p></section>
+        </div>
+        <aside class="decision-panel" aria-label="当前镜头的来源与决策">
+          <div class="decision-heading"><span><i></i> 随播放定位</span><b id="cut-number">CUT 01</b></div>
+          <div class="source-label" id="cut-source"></div><h3 id="cut-description"></h3>
+          <div id="cut-pills" class="cut-pills"></div>
+          <div class="chapter-note"><span>这一段在讲什么</span><h4 id="chapter-title"></h4><p id="chapter-description"></p><small>段落解读 · 发布时整理</small></div>
+          <div class="decision-flow" id="decision-flow"></div>
+          <div class="decision-context"><span>Jev 当时面对的目标</span><p id="cut-intent"></p></div>
+          <div class="choice-heading"><span>本轮选择概率</span><span id="choice-model"></span></div><div id="cut-choices"></div>
+          <details class="decision-more"><summary>查看本轮全部候选</summary><div id="all-choices"></div></details>
+          <p class="probability-note">概率来自保存的模型输出，仅相对于本轮选项；不是作品质量评分。RAG 提供候选，Jev 结合当前段落与前后镜头作选择。</p>
+        </aside>
+      </div>
+      <footer class="screening-footer"><p id="film-facts"></p><p>镜头编号与时间码以本项目素材版本为准。动画与音乐版权归原权利人，演示媒体不包含在源码 MIT 授权中。</p><a id="film-evidence" href="showcase/catalog.json" target="_blank">查看公开剪辑记录 ↗</a></footer>
+    </div>
+  </div>
+</dialog>
+<link rel="stylesheet" href="showcase.css">
+<script src="showcase.js"></script>
 </body>
 </html>

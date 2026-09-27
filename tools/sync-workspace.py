@@ -15,6 +15,7 @@ DENY_PARTS={'.git','.local','.venv','node_modules','localdevenv','__pycache__','
 DENY_EXT={'.mp4','.mkv','.mov','.mp3','.m4a','.wav','.srt','.ass','.vtt','.gguf','.onnx','.pth','.pt','.safetensors','.bin','.npy','.f32','.torrent','.zip','.log','.pyc'}
 def digest(data): return hashlib.sha256(data).hexdigest()
 def permitted(rel):
+    if Path(rel).as_posix() in POLICY.get('backendPublicMedia',[]): return True
     p=Path(rel)
     return not any(part in DENY_PARTS or part.startswith('.venv') for part in p.parts) and p.suffix.lower() not in DENY_EXT and not p.name.startswith('.env')
 def destination(root, rel):

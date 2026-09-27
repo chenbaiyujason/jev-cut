@@ -708,6 +708,7 @@ function render() {
 }
 
 function frame(now) {
+  if (document.getElementById('screening')?.open) { last = now; requestAnimationFrame(frame); return; }
   if (playing) {
     t = Math.min(TOTAL, t + Math.min(.1, (now - last) / 1000) * SPEED);
     if (t >= TOTAL) setPlaying(false);
@@ -738,6 +739,7 @@ function playScene(start) {
 }
 
 addEventListener('keydown', e => {
+  if (document.getElementById('screening')?.open || /INPUT|TEXTAREA|BUTTON|VIDEO/.test(e.target.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); stopAt = null; if (t >= TOTAL) seek(T0); setPlaying(!playing); }
   else if (e.code === 'ArrowRight') {
     // →：本幕动画没播完就直接跳到本幕结尾定格；已在结尾则播下一幕
@@ -745,6 +747,7 @@ addEventListener('keydown', e => {
     const i = sceneIndex(t), end = sceneEnd(i);
     if (!playing && t <= starts[i] + .02) playScene(starts[i]);
     else if (t < end - .02) { stopAt = null; seek(end); setPlaying(false); }
+    else if (i === starts.length - 1) location.hash = 'films';
     else playScene(starts[i + 1] ?? TOTAL);
   }
   else if (e.code === 'ArrowLeft') {
@@ -764,6 +767,7 @@ $('progress').addEventListener('click', e => {
 });
 
 addEventListener('resize', fit);
+addEventListener('open-showcase', () => { stopAt = null; setPlaying(false); });
 fit();
 const q = new URLSearchParams(location.search);
 if (q.has('t')) seek(+q.get('t'));

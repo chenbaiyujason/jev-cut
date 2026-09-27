@@ -1,5 +1,6 @@
 {
   "backendPublicTrees": {"pitch": "docs/pitch"},
+  "backendPublicMedia": ["pitch/showcase/sayaka-wings.mp4", "pitch/showcase/homura-fate.mp4"],
   "backendScripts": ["analyze.py", "analyze_music_events.py", "build-embeddings.mjs", "build-local-text-index.mjs", "cache-full-corpus.mjs", "catalog_preprocess.py", "detect_shots.py", "enrich-catalog.mjs", "find_repeated_sequences.py", "prepare-editor-proxies.mjs", "prepare-global-evidence.py", "refine_safe_ranges.py", "refine_thumbnails.py", "render.py", "studio-cli.mjs", "studio-contact.py", "studio-mcp.mjs", "warm-full-evidence.mjs"],
   "editorTrees": ["src", "headless", "public", "scripts"],
   "editorRootFiles": ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "tsr.config.json", "components.json", "index.html", "headless.html", "LICENSE", "README.md", ".oxlintrc.json", ".oxfmtrc.json", ".fallowrc.json", ".editorconfig", ".gitattributes"],

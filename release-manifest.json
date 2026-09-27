@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "snapshot": "20260927-210944-179500",
+  "snapshot": "20260927-214030-771800",
   "files": {
     "apps/backend/candidate-selection.mjs": {
       "origin": "backend",
@@ -17723,8 +17723,8 @@
     "docs/pitch/index.html": {
       "origin": "backend",
       "sourcePath": "pitch/index.html",
-      "sourceHash": "0f2cb3aa03a6c9429a032e2b2176b24bc193c49408259849170023de4c426bea",
-      "exportedHash": "a06f29e75632879418a85b3189a1b262cb6b57cf209d03c429e5d696205537b8"
+      "sourceHash": "ae6124be9f841d2a94c68988a70d9d5add0fbdd001d01852d446a838a27a9096",
+      "exportedHash": "5f8923d6276681774986619c1faa477bbcefd4663249091af8e35be33d212221"
     },
     "docs/pitch/pitch.css": {
       "origin": "backend",
@@ -17735,8 +17735,62 @@
     "docs/pitch/pitch.js": {
       "origin": "backend",
       "sourcePath": "pitch/pitch.js",
-      "sourceHash": "142b56d06a347d0535ea3756437ac730dbe6859b5a1cca7ea50159702b9293e3",
-      "exportedHash": "bdc8883960f21fba49a4ca60fa299c92b08ee1e8f0e7b2843069bd86b0def4ab"
+      "sourceHash": "190171ec40c69ca3e050826dcf1702594c9dd174314a8ef0c539a9f2c473b54c",
+      "exportedHash": "1390bbf924509e5ccb98f44d80957a3d1aa01503e9f4d26c9be8217dedfee4ae"
+    },
+    "docs/pitch/showcase.css": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase.css",
+      "sourceHash": "66d5fe40643cc8713cc210d875166075824789afededc88e1ebcc896aa0d31e5",
+      "exportedHash": "66d5fe40643cc8713cc210d875166075824789afededc88e1ebcc896aa0d31e5"
+    },
+    "docs/pitch/showcase.js": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase.js",
+      "sourceHash": "4193b9fff492162adcb5fb4b924c3b10b5e5910dc52e5227d02d69310e65bbe6",
+      "exportedHash": "4193b9fff492162adcb5fb4b924c3b10b5e5910dc52e5227d02d69310e65bbe6"
+    },
+    "docs/pitch/showcase/catalog.json": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/catalog.json",
+      "sourceHash": "a003f77f594773f5bbeadded6f6ef4a0015696e1e7c949427bb365a54c377206",
+      "exportedHash": "a003f77f594773f5bbeadded6f6ef4a0015696e1e7c949427bb365a54c377206"
+    },
+    "docs/pitch/showcase/homura-fate-opening.jpg": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/homura-fate-opening.jpg",
+      "sourceHash": "f725ee8daa8d72d01bfd8bd986ad170414c9703cc0fb81b2725ccb7750289102",
+      "exportedHash": "f725ee8daa8d72d01bfd8bd986ad170414c9703cc0fb81b2725ccb7750289102"
+    },
+    "docs/pitch/showcase/homura-fate.jpg": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/homura-fate.jpg",
+      "sourceHash": "c2c08c710ee6b5df23719547778d199a1a1709c18e5157aaefc796ea881abedd",
+      "exportedHash": "c2c08c710ee6b5df23719547778d199a1a1709c18e5157aaefc796ea881abedd"
+    },
+    "docs/pitch/showcase/homura-fate.mp4": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/homura-fate.mp4",
+      "sourceHash": "65391007bec7a260bc892f653a3efa1f5d03c24f0ed409a18ba7f9eb5df4dbd5",
+      "exportedHash": "65391007bec7a260bc892f653a3efa1f5d03c24f0ed409a18ba7f9eb5df4dbd5"
+    },
+    "docs/pitch/showcase/sayaka-wings-opening.jpg": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/sayaka-wings-opening.jpg",
+      "sourceHash": "db8967f57913d7be1190209ccf800f570774adf146001bfd85906e0dd5b5f120",
+      "exportedHash": "db8967f57913d7be1190209ccf800f570774adf146001bfd85906e0dd5b5f120"
+    },
+    "docs/pitch/showcase/sayaka-wings.jpg": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/sayaka-wings.jpg",
+      "sourceHash": "89aab84f703bc6af27d09065e98b1ab313fc8439ef6cf2a488508f06176f8723",
+      "exportedHash": "89aab84f703bc6af27d09065e98b1ab313fc8439ef6cf2a488508f06176f8723"
+    },
+    "docs/pitch/showcase/sayaka-wings.mp4": {
+      "origin": "backend",
+      "sourcePath": "pitch/showcase/sayaka-wings.mp4",
+      "sourceHash": "5b9e8790d8c3223fa2f422dbd2f3d425316fdb96505f40cb57d94b78562d0726",
+      "exportedHash": "5b9e8790d8c3223fa2f422dbd2f3d425316fdb96505f40cb57d94b78562d0726"
     }
   }
 }
