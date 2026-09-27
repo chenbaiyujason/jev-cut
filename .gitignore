@@ -9,6 +9,10 @@ dist/
 coverage/
 artifacts/
 data/
+!apps/editor/src/data/
+apps/editor/src/data/*
+!apps/editor/src/data/changelog.json
+!apps/editor/src/data/changelog-types.ts
 __pycache__/
 *.pyc
 *.log
