@@ -103,5 +103,34 @@
     }
   ],
   "releaseUrl": "https://github.com/chenbaiyujason/jev-cut/releases/tag/showcase-2026-09-27",
-  "note": "音乐前半段成片；标题和主题取自批次记录，不代表已经核验的剧情事实。未附带源素材或可独立重建的工程。"
+  "note": "音乐前半段成片；标题和主题取自批次记录，不代表已经核验的剧情事实。未附带源素材或可独立重建的工程。",
+  "workbenchDemo": {
+    "title": "FreeCut 演示与成片合集",
+    "videoUrl": "https://github.com/chenbaiyujason/jev-cut/releases/download/showcase-2026-09-27/freecut-demo-overview.mp4",
+    "duration": 168.152,
+    "width": 1280,
+    "height": 720,
+    "bytes": 19874000,
+    "sha256": "cf4b9a14f05f338cf27438283c0ae2ba1413e7098b58735964c00094700fefc6",
+    "poster": "docs/assets/demo/workbench.jpg",
+    "screenshots": [
+      {
+        "file": "docs/assets/demo/workbench.jpg",
+        "sourceTime": 5
+      },
+      {
+        "file": "docs/assets/demo/auto-fill.jpg",
+        "sourceTime": 14
+      },
+      {
+        "file": "docs/assets/demo/local-edit.jpg",
+        "sourceTime": 23
+      },
+      {
+        "file": "docs/assets/demo/export.jpg",
+        "sourceTime": 28
+      }
+    ],
+    "note": "实际操作与成片合集，部分等待加速；展示版仅压缩编码，截图取自原始1080p视频。"
+  }
 }
