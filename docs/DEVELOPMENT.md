@@ -34,6 +34,10 @@ python tools/sync-workspace.py --apply
 | 源文件删除，发布侧已改 | 报冲突，不删除 |
 | 发布仓库自有文档/工具/Skill | 不在导出清单中，永不被同步覆盖 |
 
+例外是演示页 `docs/pitch/`：它由开发后端的 `pitch/` 同步而来，包含 HTML、CSS、JavaScript 和页面资源。只更新演示页时可执行 `python tools/sync-workspace.py --only docs/pitch --apply`，不会把同时开发中的其他代码带进本次发布。README 与其余自有说明仍独立维护。
+
+GitHub Pages 使用 `main` 分支的 `/docs`，入口为 `/pitch/`；`docs/.nojekyll` 保持纯静态资源原样发布。演示用图像与成片不包含在源码 MIT 授权中。
+
 有冲突时整次应用不执行。可在 `.sync/snapshots/<id>/files` 查看完整输入；先人工合并或将发布侧补丁整理进 `tools/release_adapt.py`，再同步检查。不要用强制镜像命令覆盖整个目录。
 
 `release_adapt.py` 是公开包必要的路径、素材数量、空工程和模型接入适配。它在导出时作用于副本，不修改源文件。重要适配找不到预期代码位置时，应修复适配后再发布，而不是静默删掉适配。

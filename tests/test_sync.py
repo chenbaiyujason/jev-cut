@@ -7,6 +7,13 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 spec=importlib.util.spec_from_file_location('syncer',Path(__file__).resolve().parents[1]/'tools/sync-workspace.py');sync=importlib.util.module_from_spec(spec);spec.loader.exec_module(sync)
 
 class SyncTests(unittest.TestCase):
+    def test_scoped_sync_leaves_other_sources_and_prefix_neighbors_out(self):
+        incoming={'docs/pitch/index.html':1,'docs/pitch-old/index.html':2,'apps/backend/new.mjs':3}
+        baseline={'docs/pitch/removed.css':4,'apps/backend/old.mjs':5}
+        selected,previous=sync.scoped_inputs(incoming,baseline,'docs/pitch')
+        self.assertEqual(selected,{'docs/pitch/index.html':1})
+        self.assertEqual(previous,{'docs/pitch/removed.css':4})
+        with self.assertRaises(ValueError):sync.scoped_inputs(incoming,baseline,'../outside')
     def test_source_change_updates_clean_export(self):
         with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
             root=Path(folder);(root/'code.js').write_bytes(b'old');base={'code.js':{'exportedHash':sync.digest(b'old')}};incoming={'code.js':({'exportedHash':sync.digest(b'new')},b'new')}

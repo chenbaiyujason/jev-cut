@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAD Lab · 从成千上万个镜头，实时智能剪辑出情绪 MAD</title>
+<link rel="stylesheet" href="pitch.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <canvas id="fx"></canvas>
+
+  <!-- 开场与收尾的快切：整页本身就是一支按拍点剪的 MAD -->
+  <div id="montage"></div>
+  <div id="flash"></div>
+  <div id="bars">
+    <div class="bt"><span id="mtL"></span><span id="mtR"></span></div>
+    <div class="bb"><div id="mtTrack"></div></div>
+  </div>
+
+  <!-- 00 前情提要：四小幕，每幕按 → 可停住 -->
+  <section class="sc s0" data-t="-24,0">
+    <div class="wall" id="wall"></div>
+    <div class="scrim"></div>
+    <!-- 封面：标题 + 一句话介绍 -->
+    <div class="coverblk" data-t="-24,-20">
+      <small>WINNOW · JEV × ANIME MAD</small>
+      <h1>MAD Lab</h1>
+      <p>从成千上万个镜头，<em>实时</em>、智能剪辑出情绪 MAD</p>
+    </div>
+    <div class="eyebrow rv" data-t="-19.8,0">前情提要</div>
+
+    <div class="blk" data-t="-20,-15">
+      <small class="rv" data-t="-19.6,-15">01 · 漫剧</small>
+      <h2>
+        <span class="ln" data-t="-19.4,-15"><span>一部在红果热播的漫剧，</span></span>
+        <span class="ln" data-t="-19.0,-15"><span>全部由我们自己生成——</span></span>
+        <span class="ln" data-t="-18.6,-15"><span><em>成千上万</em>个镜头。</span></span>
+      </h2>
+      <p class="rv" data-t="-17.6,-15">角色、场景、情绪，全都散落在素材堆里。</p>
+    </div>
+
+    <div class="blk" data-t="-15,-10">
+      <small class="rv" data-t="-14.6,-10">02 · 宣发</small>
+      <h2>
+        <span class="ln" data-t="-14.4,-10"><span>宣发要剪几十条</span></span>
+        <span class="ln" data-t="-14.0,-10"><span><em>热门音乐 + 快剪</em>。</span></span>
+      </h2>
+      <p class="rv" data-t="-13.0,-10">就是你在抖音刷到的、几十万赞的那种视频。</p>
+      <p class="rv" data-t="-12.2,-10">今天，每一条都靠人一遍遍地反复筛。</p>
+    </div>
+
+    <div class="blk" data-t="-10,-5">
+      <small class="rv" data-t="-9.6,-5">03 · 情绪</small>
+      <h2>
+        <span class="ln" data-t="-9.4,-5"><span>有了 Jev，</span></span>
+        <span class="ln" data-t="-9.0,-5"><span>每一刀都挂在<em>情绪</em>上。</span></span>
+      </h2>
+      <p class="rv" data-t="-8.0,-5">召回、Rerank 只找“像的”，不带任何上下文；</p>
+      <p class="rv" data-t="-7.4,-5">Jev 看着前一刀、看着故事走到哪，再决定这一刀。</p>
+    </div>
+
+    <div class="blk" data-t="-5,0">
+      <small class="rv" data-t="-4.6,0">04 · 产品</small>
+      <h2>
+        <span class="ln" data-t="-4.4,0"><span>把素材交给 Jev，</span></span>
+        <span class="ln" data-t="-4.0,0"><span>按情绪和故事线，<em>实时</em>剪出来。</span></span>
+      </h2>
+      <p class="rv" data-t="-3.0,0">为什么要实时？找情绪是件高频的事——先快速试出对的那一版，再细调。</p>
+      <p class="rv" data-t="-2.2,0">不是按热度拼素材的信息流工具，而是从内容出发，讲情绪、讲故事。</p>
+      <p class="bridge rv" data-t="-1.4,0">下面用《魔法少女小圆》4,575 个镜头，把这件事完整跑一遍 →</p>
+    </div>
+
+  </section>
+
+  <!-- 手机放在幕外：前情里是宣发样片，进入第一幕时放大成全屏，直接接上快切 -->
+  <div id="phone" data-t="-15,1">
+    <img id="pImg" alt="">
+    <div class="pflash" id="pFlash"></div>
+    <div class="ptop">关注　<b>推荐</b></div>
+    <div class="tag" id="pTag"></div>
+    <div class="pside"><i>♥</i><span id="pLike">0</span></div>
+    <div class="cap"><b>@漫剧宣发</b><br>#漫剧 #卡点 #混剪<br>♪ 夜间巡航 DJ</div>
+  </div>
+
+  <!-- 01 千镜 -->
+  <section class="sc s1" data-t="0,7.3">
+    <div class="scrim"></div>
+    <div class="title">
+      <div class="eyebrow rv" data-t="4.4">实验 · 用《魔法少女小圆》代替我们的漫剧素材</div>
+      <h1>
+        <span class="ln" data-t="4.6"><span><b class="num">4,575</b> 个镜头。</span></span>
+        <span class="ln" data-t="4.95"><span>一句话，剪成一首歌。</span></span>
+      </h1>
+      <p class="meta rv" data-t="5.7">《魔法少女小圆》TV 总集 11 集 · 720 个场景 · 本机实时决策</p>
+    </div>
+  </section>
+
+  <!-- 02 每一刀都是决定 -->
+  <section class="sc s2" data-t="7.3,17">
+    <div class="scrim"></div>
+    <div class="count">
+      <div class="eyebrow rv" data-t="8.6">为什么今天只能靠人反复筛 · 剪辑的真实工作量</div>
+      <div class="big rv" data-t="8.8"><span id="bigCount">0</span></div>
+      <div class="unit rv" data-t="9.4">次「<em>要不要</em>」</div>
+      <div class="formula rv" data-t="9.9"><b>4,575</b> 个镜头<i>×</i><b>~120</b> 个拍点<i>×</i><b>6</b> 个维度<span>选材 · 原声 · 时长 · 转场 · 特效 · 滤镜</span></div>
+    </div>
+    <div class="verdict">
+      <small class="rv" data-t="13.4">全部塞进大模型——</small>
+      <span class="ln" data-t="13.7"><span>装不下，</span></span>
+      <span class="ln" data-t="14.2"><span>也等不起。</span></span>
+    </div>
+    <div class="wavecap rv" data-t="8.4"><span>配乐 · 夜间巡航 DJ</span><span><b class="num">52.17</b>s · <b class="num">13</b> 个重音 · 每个重音都要重新问一遍</span></div>
+  </section>
+
+  <!-- 03 像不像 ≠ 放不放 -->
+  <section class="sc s3" data-t="17,28">
+    <div class="scrim"></div>
+    <div class="colhead rag rv" data-t="17.3"><small>RAG · 召回 + RERANK</small><h2>像不像</h2></div>
+    <div class="ragq rv" data-t="17.5">
+      <span>召回输入</span>
+      <b>乐句 3「承诺」· 焰下定决心，要守护小圆</b>
+      <i>乐句方向 + 最近两镜 + 音乐位置 → 全库向量 + 字幕 + 描述检索</i>
+    </div>
+    <ol id="ragList"></ol>
+    <p class="ragnote rv" data-t="19.3">召回下一个、再 Rerank——都不带上下文，<br>它不知道这里已经有三个哭脸了。</p>
+
+    <div class="colhead jev rv" data-t="18.3"><small>JEV · 带上下文的插入决策</small><h2>放不放，怎么放</h2></div>
+    <div class="slotcap rv" data-t="19.3">插入点 · 乐句 3「承诺」· 第 2 个重音</div>
+    <div id="slot">
+      <div class="frame" id="slotFrame"></div>
+      <div class="whiteout" id="whiteout"></div>
+      <div class="pread" id="pread"><small>P(放入)</small><b class="num">0.00</b><i></i></div>
+    </div>
+    <dl id="pack">
+      <div class="row keep"><dt>KEEP</dt><dd>保留 <b class="num">0.94</b></dd></div>
+      <div class="row"><dt>AUDIO</dt><dd>仅人声</dd></div>
+      <div class="row"><dt>TRANSITION</dt><dd>闪白切入</dd></div>
+      <div class="row"><dt>FX</dt><dd>轻推 <span class="num">1.06×</span></dd></div>
+      <div class="row"><dt>GRADE</dt><dd>冷调</dd></div>
+      <div class="row"><dt>LENGTH</dt><dd><span class="num">21</span> 帧</dd></div>
+    </dl>
+    <p class="packcap rv" data-t="22.2">六个维度，同一个插入点，<em>同时落定</em>。</p>
+    <p class="bottomline">
+      <span class="ln" data-t="24.4"><span>不是召回 + Rerank，</span></span>
+      <span class="ln" data-t="24.9"><span>是对每个镜头直接<em>做决定</em>。</span></span>
+    </p>
+  </section>
+
+  <!-- 04 多级剪枝 -->
+  <section class="sc s4" data-t="28,42">
+    <div class="s4head rv" data-t="28.5"><small>多级剪枝 · 每一刀一轮</small><h2>每一刀都回到全库，只把难题交给最合适的模型。</h2></div>
+    <div class="lv" id="lv0" data-t="29.4"><small class="gold">GEMINI</small><b>情绪大纲</b><span>听实际配乐，定乐句情绪与检索方向</span></div>
+    <div class="lv" id="lv1" data-t="29.9"><small>全库 · 每刀重查</small><b class="num">4,425</b><span>4,575 镜头去掉重复 OP/ED，全部有向量</span></div>
+    <div class="lv" id="lv2" data-t="30.9"><small class="cool">RAG · 本刀临时召回</small><b class="num">96–384</b><span>向量 + 字幕 + 描述；不留作下一刀的名单</span></div>
+    <div class="lv" id="lv3" data-t="33.2"><small class="rose">JEV · 全部评分</small><b class="num">35–70</b><span>合格候选不截断，逐个问：适合这个乐段吗？</span></div>
+    <div class="lv" id="lv4" data-t="36.1"><small class="rose">JEV · 最终选择</small><b class="num">6–12 → 1</b><span>真实裁剪窗口 + 前后镜 + 重音，定镜头与时长</span></div>
+    <div class="final">
+      <small class="rv" data-t="39.8">时间轴</small>
+      <span class="ln" data-t="40.0"><span>落一刀，状态更新，下一刀重新查全库。</span></span>
+    </div>
+    <p class="foot rv" data-t="31.2">* 数量取自当前选镜策略与实测（同乐段连续插入约 0.4–0.6 秒/镜）；星图落位为示意动画</p>
+  </section>
+
+  <!-- 05 为什么是 Jev -->
+  <section class="sc s5" data-t="42,54">
+    <div class="scrim"></div>
+    <div class="echo rv" data-t="42.5">为什么要实时 · 找情绪是一件高频的事</div>
+    <div class="lanehead llm rv" data-t="42.7"><small class="gold">LLM</small><b>大模型</b><span>逐字生成 · 秒级一次</span><em><b class="num" id="llmCount">0</b> 次</em></div>
+    <div class="lanehead jev rv" data-t="43.0"><small class="rose">JEV</small><b>Winnow-12B</b><span>8 路并行 · 前缀缓存 · 只读概率</span><em><b class="num" id="jevCount">0</b> 次</em></div>
+    <div class="side">
+      <div class="ms rv" data-t="43.4"><b class="num">88</b><i>ms</i><span>单次决策 · 中位延迟 *</span></div>
+      <ul class="stats">
+        <li class="rv" data-t="44.0"><b class="num">0</b><i>token</i><span>不写文字，直接读选项概率</span></li>
+        <li class="rv" data-t="44.4"><b class="num">8</b><i>路</i><span>分支并行，共享同一段上下文</span></li>
+        <li class="rv" data-t="44.8"><b class="num">≈0</b><i>元</i><span>本机 12B，可以奢侈地反复问</span></li>
+      </ul>
+    </div>
+    <blockquote>
+      <span class="ln" data-t="49.2"><span>大模型是导演，一首歌开一次会；</span></span>
+      <span class="ln" data-t="49.7"><span>Jev 是剪辑师的手感，<em>每个拍点问上千遍。</em></span></span>
+    </blockquote>
+    <p class="sub rv" data-t="51.2">拿得准就直接落刀；拿不准，才升级回大模型重新规划。</p>
+    <p class="foot rv" data-t="44.6">* 本机 RTX 5090 · Winnow-12B 决策接口实测中位数，不含检索、解码与渲染；大模型节奏为示意</p>
+  </section>
+
+  <!-- 06 一线 -->
+  <section class="sc s6" data-t="57,61">
+    <div class="scrim"></div>
+    <h1>
+      <span class="ln" data-t="57.25"><span>有了 Jev 级的决策，</span></span>
+      <span class="ln" data-t="57.55"><span>剪辑从一次性生成，</span></span>
+      <span class="ln" data-t="57.85"><span>变成<em>持续发生的决策。</em></span></span>
+    </h1>
+    <p class="sub rv" data-t="58.7">改一句想法，只重决受影响的那一段乐句。</p>
+    <!-- 首尾呼应：回到开头那部漫剧，几十条宣发各有情绪 -->
+    <div class="reprise">
+      <small class="rv" data-t="57.6">回到我们的漫剧 · 一句话一条宣发</small>
+      <div class="minis">
+        <div class="mini rv" data-t="57.9"><img src="assets/feat-10.jpg" alt=""><b>宣发 01</b><span>燃 · 对峙到爆发</span></div>
+        <div class="mini rv" data-t="58.15"><img src="assets/feat-08.jpg" alt=""><b>宣发 02</b><span>虐 · 一次次重来</span></div>
+        <div class="mini rv" data-t="58.4"><img src="assets/feat-06.jpg" alt=""><b>宣发 03</b><span>暖 · 带她回家</span></div>
+      </div>
+    </div>
+    <div class="cta rv" data-t="59.2"><small>NEXT</small><span>实机演示</span><i>→</i></div>
+  </section>
+
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="hud">
+    <i class="cm tl"></i><i class="cm tr"></i><i class="cm bl"></i><i class="cm br"></i>
+    <div class="brand">WINNOW MAD LAB<span>JEV × ANIME MAD</span></div>
+    <div class="sceneidx"><b class="num" id="sceneNo">01</b><span class="num">/ 11</span><em id="sceneName">千镜</em></div>
+    <div class="tc num" id="tc">00:00:00:00</div>
+    <div class="hint">SPACE 播放 / 暂停 · ← → 切幕 · N 讲稿 · F 全屏</div>
+  </div>
+  <div id="notes"></div>
+  <div id="progress"><div id="ticks"></div><div id="bar"></div></div>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/textures.js"></script>
+<script src="pitch.js"></script>
+</body>
+</html>
