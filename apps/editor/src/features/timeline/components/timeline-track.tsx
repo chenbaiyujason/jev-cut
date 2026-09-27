@@ -515,7 +515,9 @@ export const TimelineTrack = memo(function TimelineTrack({ track }: TimelineTrac
       }
 
       const store = useTimelineStore.getState()
-      const durationInFrames = getDefaultGeneratedLayerDurationInFrames(fps)
+      const durationInFrames = template.itemType === 'controller'
+        ? Math.round(fps * 1.5)
+        : getDefaultGeneratedLayerDurationInFrames(fps)
       const targetTrack = findCompatibleTrackForItemType({
         tracks: store.tracks,
         items: store.items,
@@ -659,7 +661,9 @@ export const TimelineTrack = memo(function TimelineTrack({ track }: TimelineTrac
       }
 
       const store = useTimelineStore.getState()
-      const durationInFrames = getDefaultGeneratedLayerDurationInFrames(fps)
+      const durationInFrames = template.itemType === 'controller'
+        ? Math.max(1, Math.round(fps * 1.5))
+        : getDefaultGeneratedLayerDurationInFrames(fps)
       const targetTrack = findCompatibleTrackForItemType({
         tracks: store.tracks,
         items: store.items,
@@ -1162,6 +1166,8 @@ export const TimelineTrack = memo(function TimelineTrack({ track }: TimelineTrac
           }
 
           addItem(templateItem)
+          if (templateItem.type === 'controller' && templateItem.jevMatchPlaceholder)
+            useSelectionStore.getState().selectItems([templateItem.id])
           return
         }
 

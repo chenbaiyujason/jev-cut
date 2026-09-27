@@ -289,12 +289,27 @@ export const PropertiesSidebar = memo(function PropertiesSidebar() {
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={extension.active}
+                    aria-selected={extension.active && !extension.extraTabs?.some((tab) => tab.active)}
                     disabled={extension.busy}
-                    onClick={() => extension.setActive(true)}
+                    onClick={() => {
+                      extension.onInspectorSelect?.()
+                      extension.setActive(true)
+                    }}
                   >
                     {extension.label}
                   </button>
+                  {extension.extraTabs?.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={extension.active && tab.active}
+                      disabled={extension.busy}
+                      onClick={tab.onSelect}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
               ) : (
                 <div className="min-w-0 flex items-center gap-1">

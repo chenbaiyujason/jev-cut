@@ -15,6 +15,7 @@ import {warmEvidenceWorker} from './evidence-worker.mjs';
 import {visionSelectionEnabled} from './decision-settings.mjs';
 import {musicPhrases,attachPhrases} from './music-phrases.mjs';
 import {directExpression} from './expression-director.mjs';
+import {expressionOptions} from './editing-policy.mjs';
 import {durationChoices,applyShotDecision,trimProjectPrefix} from './shot-pacing.mjs';
 export async function generateGlobalSequence(library,options,{decide,logDir,onProgress}){
   const started=performance.now(),music=library.music.find(m=>m.id===options.musicId);if(!music)throw Error('请先导入配乐');
@@ -26,7 +27,7 @@ export async function generateGlobalSequence(library,options,{decide,logDir,onPr
   progress({progress:.02,stage:'理解音乐与用户目标，不建立项目素材池'});
   const intent=await analyzeMusicIntent(music,{forceReanalyze:options.reanalyzeMusic===true});
   const goal=options.prompt||intent.edit_direction;
-  const plan=await planEdit(music,[],{duration,prompt:goal+'\n'+intent.edit_direction+(options.excerpt?'\n这里只剪原音频前半段，作为片段直接截出，不设计完整结尾、谢幕或强行收束。':''),intensity:options.intensity??intent.suggested_intensity,keepDialogue:options.keepDialogue!==false&&intent.dialogue_suitability>=.5,events,globalScope:true,musicIntent:intent});
+  const plan=await planEdit(music,[],{duration,prompt:goal+'\n'+intent.edit_direction+(options.excerpt?'\n这里只剪原音频前半段，作为片段直接截出，不设计完整结尾、谢幕或强行收束。':''),intensity:options.intensity??intent.suggested_intensity,keepDialogue:options.keepDialogue!==false&&intent.dialogue_suitability>=.5,events,globalScope:true,musicIntent:intent,narrativeStages:options.narrative?.stages});
   const accent=await chooseAccentPolicies(events,intent,plan,{decide,logDir});
   const locked=(library.project?.clips||[]).filter(c=>c.locked),base=slotsFromPlan(plan,music,duration,locked),rhythmicSlots=locked.length?base:shapeAroundAccents(base,accent.anchors,beat);
   const phrases=intent.has_intelligible_lyrics?await musicPhrases(music):{phrases:[]};
@@ -40,18 +41,20 @@ export async function generateGlobalSequence(library,options,{decide,logDir,onPr
     const slot=locked.length?slots[index]:(slots.find(s=>s.start*30<=cursorFrame+.1&&s.end*30>cursorFrame+.1)||slots.at(-1));
     if(slot.lockedClip){const imported=migrateLegacyProject({...library,project:{musicId:music.id,duration,clips:[slot.lockedClip]}});project.timeline.items.push(...imported.timeline.items.filter(i=>i.trackId!=='music'));continue;}
     const from=locked.length?Math.round(slot.start*30):cursorFrame;
-    const durationOptions=locked.length?undefined:durationChoices({from,totalFrames,music,events,phrases,ending:!options.excerpt&&from/30>duration-3});
+    const chapter=options.narrative?plan.sections.find(s=>Math.round(s.start*30)<=from&&Math.round(s.end*30)>from):null;
+    const chapterEnd=chapter?Math.min(totalFrames,Math.round(chapter.end*30)):totalFrames;
+    const durationOptions=locked.length?undefined:durationChoices({from,totalFrames:chapterEnd,music,events,phrases,ending:!options.excerpt&&from/30>duration-3});
     const to=durationOptions?from+durationOptions[0].frames:Math.round(slot.end*30);if(to<=from)continue;
     const placeholder={id:randomUUID(),type:'video',trackId:'picture',from,durationInFrames:to-from,label:slot.phase,mediaId:'',src:'',sourceStart:0,sourceEnd:0,sourceFps:24,speed:1,volume:-60,embeddedAudioMuted:true,sourceWidth:960,sourceHeight:540,mad:{phrase:slot.phrase,accentFraction:Math.max(0,Math.min(1,(slot.accent-slot.start)/(slot.end-slot.start)))},transform:{x:0,y:0,width:960,height:540,rotation:0,opacity:1,aspectRatioLocked:true}};
     project.timeline.items.push(placeholder);progress({progress:.15+.7*from/totalFrames,stage:`已剪${(from/30).toFixed(1)}/${duration.toFixed(1)}秒：Winnow联合选择素材与结束点`});
     const decisionIntent=!options.excerpt&&totalFrames-from<=60?'音乐正在结束：接住当前动作的结果、余韵或主角反应来收束。无需再发动完整战斗或实现宏观段落中所有高潮要求。':slot.phase;
-    const result=await chooseGlobalShot({project,item:placeholder,library,resources,goal,prompt:options.prompt||'',intent:decisionIntent,ask,allowKeep:false,reserveFrames:1,visionEnabled,adaptiveVisual:true,durationOptions});
+    const result=await chooseGlobalShot({project,item:placeholder,library,resources,goal,prompt:options.prompt||'',intent:decisionIntent,ask,allowKeep:false,reserveFrames:1,visionEnabled,adaptiveVisual:true,durationOptions,narrative:options.narrative?{...options.narrative,stage:chapter.story_stage}:undefined});
     const applied=applyShotDecision(project,result.selected,resources.shots);project=applied.project;cursorFrame=from+result.selected.item.durationInFrames;
     traces.push({occurrenceId:applied.occurrenceId,proposalId:placeholder.id,editAction:applied.action,...result.trace,selectedDurationFrames:result.selected.item.durationInFrames,traceUrl:result.traceUrl});await mkdir(logDir,{recursive:true});await writeFile(path.join(logDir,'in-progress.json'),JSON.stringify({project,traces,completed:index+1,completedSeconds:cursorFrame/30,dynamicDuration:true},null,2));
   }
   progress({progress:.9,stage:'Winnow按动作与重音安排原声、转场和镜头表现'});
   const polished=await runScopedEdit({project,library,resources,ask,body:{scope:{mode:'all'},goal,prompt:intent.edit_direction,audioMode:options.keepDialogue===false?'sfx':'auto',allowed:{shots:false,effects:false,transitions:false,grade:false}}});project=polished.project;
-  const expression=await directExpression({project,library,resources,events,ask,allowRemap:options.actionRetime!==false,allowTransitions:options.expressiveTransitions===true});project=expression.project;polished.decisions.push(...expression.decisions);polished.timing.modelMs+=expression.timing.modelMs;
+  const expression=await directExpression({project,library,resources,events,ask,...expressionOptions(options)});project=expression.project;polished.decisions.push(...expression.decisions);polished.timing.modelMs+=expression.timing.modelMs;
   const shots=new Map(resources.shots.map(s=>[s.id,s])),clips=project.timeline.items.filter(i=>i.type==='video').sort((a,b)=>a.from-b.from).map(i=>{const s=shots.get(i.mad.shotId),r=s.safeRanges.find(r=>r.startFrame<=i.sourceStart&&r.endFrame>=i.sourceEnd);if(!r)throw Error('源窗口校验失败');return{id:i.id,sourceId:i.mediaId,shotId:s.id,sceneId:s.sceneId,episode:s.episode,start:i.from/30,end:(i.from+i.durationInFrames)/30,sourceIn:i.sourceStart/i.sourceFps,rate:i.speed||1,gain:0,effect:'none',title:s.description,dialogue:'',safety:{start:r.startFrame/i.sourceFps,end:r.endFrame/i.sourceFps,guardFrames:2,method:'native boundary review'},decision:{source:'Winnow full corpus per decision'},locked:!!i.locked};});
   const result=validateProject({id:randomUUID(),musicId:music.id,duration,prompt:options.prompt||'',intensity:options.intensity??intent.suggested_intensity,keepDialogue:options.keepDialogue!==false,musicGain:.65,clips,nativeProject:project,insertionDecisions:polished.decisions,plan,musicIntent:intent,musicEvents:events,globalDecisions:traces,coverage:{episodesSearched:[...new Set(scope.map(s=>s.episode))],episodesUsed:[...new Set(clips.map(c=>c.episode))],catalogShots:resources.shots.length},metrics:{totalMs:performance.now()-started,calls:traces.reduce((n,t)=>n+t.calls.length,0)+polished.decisions.length+accent.calls,modelMs:traces.reduce((n,t)=>n+t.timing.modelMs,0)+polished.timing.modelMs+accent.ms},createdAt:new Date().toISOString()},library);
   await mkdir(logDir,{recursive:true});await writeFile(path.join(logDir,'global-production.json'),JSON.stringify(result,null,2));return result;

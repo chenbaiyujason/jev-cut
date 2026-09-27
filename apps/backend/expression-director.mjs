@@ -6,6 +6,17 @@ import {fpsOf} from './studio-project.mjs';
 
 const end=i=>i.from+i.durationInFrames;
 const key=(itemId,property,frame,value,easing='linear')=>({op:'addKeyframe',itemId,property,frame,value,easing});
+export function anticipationForBreak(item,shot,anchor,fps,slowRate){
+ const hit=Math.round(anchor.time*fps);if(Math.abs(end(item)-hit)>1||anchor.quietSeconds<.18)return null;
+ if(!(shot.semantic?.actions||[]).some(a=>a.confidence>=.65&&/挥|举|拔|开火|发射|射击|跑|跳|跃|转身|蓄力|冲|斩|刺|劈|踢|击|砸|坠|落/.test(a.action||'')))return null;
+ let lead=Math.max(0,Math.round(anchor.quietStart*fps)-item.from);if(lead<3)lead=0;
+ const quiet=item.durationInFrames-lead;if(quiet<6)return null;
+ const sfps=item.sourceFps,start=item.sourceStart,split=start+Math.round(lead*sfps*(item.speed||1)/fps),finish=split+Math.max(2,Math.ceil(quiet*sfps*slowRate/fps));
+ if(!shot.safeRanges.some(r=>r.startFrame<=start&&r.endFrame>=finish)||(shot.repeatedBands||[]).some(r=>start/sfps<r.end&&finish/sfps>r.start))return null;
+ const segments=[...(lead?[{from:0,durationInFrames:lead,sourceStart:start,sourceEnd:split,speed:(split-start)*fps/(lead*sfps)}]:[]),{from:lead,durationInFrames:quiet,sourceStart:split,sourceEnd:finish,speed:(finish-split)*fps/(quiet*sfps)}];
+ if(segments.some(s=>s.sourceEnd<=s.sourceStart||s.speed<.5||s.speed>2))return null;
+ return {kind:'silence-anticipation',anchor:{musicSeconds:anchor.time,quietStart:anchor.quietStart,action:'停顿段蓄势，重入点释放'},segments};
+}
 function catalog(project,resources,library){return {...project,madCatalog:{assets:library.sources.map(s=>({assetId:s.id,mediaId:s.id,sourceFps:fpsOf(s.fps),sourceDurationFrames:Math.floor(s.duration*fpsOf(s.fps)),src:s.url,width:960,height:540})),shots:resources.shots.map(s=>({shotId:s.id,assetId:s.sourceId,sourceIn:s.startFrame,sourceOut:s.endFrame,safeRanges:s.safeRanges.map(r=>({sourceIn:r.startFrame,sourceOut:r.endFrame}))}))}};}
 export function remapForAccent(item,shot,at,fps){
  const duration=item.durationInFrames,hit=Math.round(at*fps)-item.from;if(duration<21||hit<6||hit>duration-6)return null;
@@ -15,7 +26,7 @@ export function remapForAccent(item,shot,at,fps){
  const source=[Math.round(sourceHit-((hit-split)*1.8+split*.6)*item.sourceFps/fps),Math.round(sourceHit-(hit-split)*1.8*item.sourceFps/fps),sourceHit,Math.round(sourceHit+(duration-hit)*.7*item.sourceFps/fps)];
  if(!shot.safeRanges.some(r=>r.startFrame+1<=source[0]&&r.endFrame-1>=source[3])||(shot.repeatedBands||[]).some(r=>source[0]/item.sourceFps<r.end&&source[3]/item.sourceFps>r.start))return null;
  const segments=times.slice(0,-1).map((t,i)=>({from:t,durationInFrames:times[i+1]-t,sourceStart:source[i],sourceEnd:source[i+1],speed:(source[i+1]-source[i])*fps/((times[i+1]-t)*item.sourceFps)}));
- if(segments.some(s=>s.speed<.25||s.speed>4||s.sourceEnd<=s.sourceStart))return null;
+ if(segments.some(s=>s.speed<.5||s.speed>2||s.sourceEnd<=s.sourceStart))return null;
  return {kind:'piecewise-speed-remap',anchor:{musicSeconds:at,sourceSeconds:sourceHit/item.sourceFps,action:peak.action},segments};
 }
 function cameraOps(project,item,peak,kind){
@@ -57,13 +68,28 @@ function splitRemapped(project,item,plan){
 }
 
 /** Accent-level expressive decisions; all options are compiled before Winnow sees them. */
-export async function directExpression({project,library,resources,events,ask,onProgress=()=>{},allowRemap=true,allowTransitions=false}){
+export async function directExpression({project,library,resources,events,ask,onProgress=()=>{},allowRemap=true,allowTransitions=false,targetIds,structuralOnly=false}){
  const started=performance.now();let p=structuredClone(project);p.timeline.keyframes??=[];p.timeline.transitions??=[];
- const fps=p.metadata.fps,map=new Map(resources.shots.map(s=>[s.id,s])),videos=p.timeline.items.filter(i=>i.type==='video').sort((a,b)=>a.from-b.from),decisions=[],remaps=[];
+ const targets=targetIds?new Set(targetIds):null;
+ const fps=p.metadata.fps,map=new Map(resources.shots.map(s=>[s.id,s])),videos=p.timeline.items.filter(i=>i.type==='video'&&(!targets||targets.has(i.id))).sort((a,b)=>a.from-b.from),decisions=[],remaps=[];
  const anchors=[];for(const event of [...events.primaryAccents].filter(e=>e.time<project.duration-.15).sort((a,b)=>b.strength-a.strength)){if(anchors.every(a=>Math.abs(a.time-event.time)>.75))anchors.push(event);}anchors.sort((a,b)=>a.time-b.time);
  const animated=new Set(),transitionItems=new Set();
+ // Break returns remain eligible independently of ordinary accent spacing/budgets.
+ for(const anchor of allowRemap?(events.structuralAccents||[]):[]){
+  const hit=Math.round(anchor.time*fps),item=videos.find(i=>Math.abs(end(i)-hit)<=1&&i.from<hit);if(!item||item.locked||item.isLocked||item.mad?.structuralTimingProcessed?.includes(hit))continue;
+  if(p.timeline.tracks.some(t=>t.id===item.trackId&&(t.locked||t.isLocked))||p.timeline.transitions.some(t=>t.leftClipId===item.id||t.rightClipId===item.id))continue;
+  if(p.timeline.items.some(i=>i.type==='audio'&&i.trackId!=='music'&&i.from<end(item)&&end(i)>item.from))continue;
+  const shot=map.get(item.mad?.shotId);if(!shot)continue;
+  const proposals={};for(const rate of [.25,.4]){const plan=anticipationForBreak(item,shot,anchor,fps,rate);if(plan&&!Object.values(proposals).some(p=>p.segments.at(-1).sourceEnd===plan.segments.at(-1).sourceEnd))proposals['slow'+Math.round(rate*100)]=plan;}
+  if(!Object.keys(proposals).length)continue;
+  const input={state:{musicBreak:anchor,current:windowFacts(shot,item),next:videos.find(v=>v.from===hit)?.label,plans:proposals},questions:{timing:{type:'choice',instructions:'这是音乐刻意停顿后的重新进入。选择停顿期间的蓄势方式；重音位置不移动、不加黑屏和突然放大。正在挥剑、转身或蓄力可减速，画面本已静止则original。不要把整段战斗都慢放。',criteria:{original:'保留自然动作，按已有重入切点释放',...Object.fromEntries(Object.entries(proposals).map(([id,plan])=>[id,`停顿段约${plan.segments.at(-1).speed.toFixed(2)}倍速，源帧连续，重入点接下一镜释放`]))}}}};
+  const r=await ask(input),choice=r.result.answers.timing?.choice;if(choice!=='original'&&!proposals[choice])throw Error('Invalid break-return timing choice');
+  if(choice!=='original')remaps.push({itemId:item.id,plan:proposals[choice]});
+  item.mad={...item.mad,structuralTimingProcessed:[...(item.mad?.structuralTimingProcessed||[]),hit]};
+  decisions.push({at:anchor.time,occurrenceId:item.id,input,output:r.result,ms:r.ms,applied:{gesture:'break-return',retime:choice!=='original'}});
+ }
  // User-reviewed A/B preference: automatic expression defaults to action timing only.
- for(const anchor of allowTransitions?anchors:[]){
+ for(const anchor of allowTransitions&&!structuralOnly?anchors:[]){
   const item=videos.find(i=>Math.abs(i.from/fps-anchor.time)<.085)||videos.find(i=>i.from/fps<=anchor.time&&end(i)/fps>anchor.time);if(!item||item.locked||animated.has(item.id))continue;
   const index=videos.findIndex(i=>i.id===item.id),left=videos[index-1],peak=Math.round(anchor.time*fps)-item.from,shot=map.get(item.mad?.shotId);if(!shot)continue;
   const candidates={clean:{description:'保留自然动作，不增加画面扰动',ops:[]}};
@@ -96,8 +122,8 @@ export async function directExpression({project,library,resources,events,ask,onP
  }
  // Give action timing its own opportunities between major transition beats.
  let timingOpportunities=0,lastTiming=-Infinity;
- for(const item of allowRemap?videos:[]){
-  if(timingOpportunities>=4)break;if(item.locked||transitionItems.has(item.id)||remaps.some(r=>r.itemId===item.id)||item.from/fps-lastTiming<3)continue;
+ for(const item of allowRemap&&!structuralOnly?videos:[]){
+  if(timingOpportunities>=4)break;if(item.locked||item.mad?.timeRemap||transitionItems.has(item.id)||remaps.some(r=>r.itemId===item.id)||item.from/fps-lastTiming<3)continue;
   const shot=map.get(item.mad?.shotId);if(!shot||!/开火|射|挥|跃|跑|引爆|按下|扣动|冲|坠/.test(shot.description))continue;
   if(p.timeline.items.some(i=>i.type==='audio'&&i.trackId!=='music'&&i.from<end(item)&&end(i)>item.from))continue;
   const beats=(events.events||[]).filter(e=>e.time>item.from/fps&&e.time<end(item)/fps).sort((a,b)=>b.strength-a.strength);

@@ -41,6 +41,7 @@ import { ZOOM_MIN, ZOOM_MAX, SLIP_SLIDE_TOOLS_ENABLED } from '../constants'
 import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings'
 import { MicRecordControl } from './mic-record-control'
+import { useEditorExtension } from '@/features/editor/components/editor-extension'
 
 interface TimelineHeaderProps {
   onZoomChange?: (newZoom: number) => void
@@ -450,6 +451,7 @@ export const TimelineHeader = memo(function TimelineHeader({
   onZoomOut,
   onZoomToFit,
 }: TimelineHeaderProps) {
+  const extension = useEditorExtension()
   const { t } = useTranslation()
   const hotkeys = useResolvedHotkeys()
   const snapEnabled = useTimelineStore((s) => s.snapEnabled)
@@ -508,6 +510,7 @@ export const TimelineHeader = memo(function TimelineHeader({
           <Film className="w-3 h-3" />
           {t('timeline.header.title')}
         </h2>
+        {extension?.timelineToolbarActions}
       </div>
 
       {/* Middle: Timeline Controls */}

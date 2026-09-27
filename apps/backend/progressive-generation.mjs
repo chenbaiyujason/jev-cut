@@ -17,6 +17,9 @@ import {visionSelectionEnabled} from './decision-settings.mjs';
 import {generationWindow,musicForWindow,generationRanges} from './generation-window.mjs';
 import {durationChoices,applyShotDecision} from './shot-pacing.mjs';
 import {musicPhrases} from './music-phrases.mjs';
+import {directExpression} from './expression-director.mjs';
+import {expressionOptions,automaticExpressionPolicy} from './editing-policy.mjs';
+import {bufferPlanningSection,bufferedPlan} from './planning-buffer.mjs';
 
 /** Serial consumer overlaps model planning; only complete validated sections enter this queue. */
 export async function consumeSections(produce,consume,{signal}={}){
@@ -58,6 +61,7 @@ export async function startGeneration(body,library,dependencies={}){
   fresh.duration=(track.from+track.durationInFrames)/fresh.metadata.fps;
  }
  const window=generationWindow(fresh,music);duration=window.duration;
+ fresh.duration=Math.max(fresh.duration||0,window.to/window.fps);
  if(mode==='rebuild'){
   const targets=fresh.timeline.items.filter(i=>i.type==='video'&&i.trackId==='picture'&&i.from<window.to&&i.from+i.durationInFrames>window.from).map(i=>({id:i.id,from:Math.max(i.from,window.from),to:Math.min(i.from+i.durationInFrames,window.to)}));
   const isolated=isolateEditTargets(fresh,{targets});fresh=isolated.project;const removed=new Set(isolated.ids);
@@ -65,8 +69,10 @@ export async function startGeneration(body,library,dependencies={}){
   fresh.timeline.transitions=(fresh.timeline.transitions||[]).filter(t=>!removed.has(t.leftClipId)&&!removed.has(t.rightClipId));fresh.timeline.keyframes=(fresh.timeline.keyframes||[]).filter(k=>!removed.has(k.itemId));
  }
  const ranges=generationRanges(fresh,window,mode),goal=String(body.prompt??fresh.description??'');
+ const planningWindow=mode==='append'&&ranges.length?{...window,from:ranges[0][0],duration:(window.to-ranges[0][0])/window.fps,sourceStart:window.sourceStart+(ranges[0][0]-window.from)/window.fps*window.rate}:window;
+ const preparingClip=ranges.length?{id:'preparing-'+id,trackId:'picture',from:ranges[0][0],to:Math.min(ranges[0][1],ranges[0][0]+window.fps),index:fresh.timeline.items.filter(i=>i.type==='video').length+1}:null;
  const state=await commit(library,current.revision,()=>{if(!ticket.current())throw Error('生成已被新操作替代');return fresh;},'start progressive generation '+id);
- const job={id,mode,status:'running',phase:mode==='append'?'正在补齐主音轨后的画面':'音乐轨已就绪，正在准备首段',eventVersion:0,pendingClip:null,clips:fresh.timeline.items.filter(i=>i.type==='video').length,sectionsReady:0,state,controller,ticket,startedAt:new Date().toISOString(),timing:{musicTrackMs:performance.now()-started},trace:[]};jobs.set(id,job);
+ const job={id,mode,status:'running',phase:mode==='append'?'正在规划新增尾段':'音乐轨已就绪，正在准备首段',eventVersion:0,pendingClip:preparingClip,clips:fresh.timeline.items.filter(i=>i.type==='video').length,sectionsReady:0,state,controller,ticket,startedAt:new Date().toISOString(),planningRange:{from:planningWindow.from/window.fps,to:window.to/window.fps},timing:{musicTrackMs:performance.now()-started},trace:[]};jobs.set(id,job);
  const check=()=>{if(controller.signal.aborted||!ticket.current())throw Error('已停止生成，保留已排入镜头');};
  const publish=async(project,phase)=>{check();const next=await commit(library,job.state.revision,()=>{check();return structuredClone(project);},phase);job.state=next;job.clips=project.timeline.items.filter(i=>i.type==='video').length;if(job.clips&&!job.timing.firstClipMs)job.timing.firstClipMs=performance.now()-started;progress(job,{phase,pendingClip:null});};
  const folder=path.join(logRoot,id);
@@ -78,26 +84,33 @@ export async function startGeneration(body,library,dependencies={}){
    if(!ranges.length){progress(job,{status:'complete',phase:'主音轨范围已有画面覆盖',pendingClip:null});return;}
    progress(job,{phase:'正在理解主音轨与节拍'});
    const [resources,rawIntent,rawEvents]=await Promise.all([loadResources(),understandMusic(music),loadEvents(music)]);check();
-   const {music:planningMusic,intent,events}=musicForWindow(music,rawIntent,rawEvents,window);const effectiveGoal=goal||intent.edit_direction;
+   const {music:planningMusic,intent,events}=musicForWindow(music,rawIntent,rawEvents,planningWindow);const effectiveGoal=goal||intent.edit_direction;
+   duration=planningWindow.duration;
    const rawPhrases=rawIntent.has_intelligible_lyrics?await musicPhrases(music):{phrases:[]};
-   const mapPhraseTime=t=>(t-window.sourceStart)/window.rate;
+   const mapPhraseTime=t=>(t-planningWindow.sourceStart)/planningWindow.rate;
    const phrases={phrases:rawPhrases.phrases.filter(p=>mapPhraseTime(p.end)>0&&mapPhraseTime(p.start)<duration).map(p=>({...p,start:Math.max(0,mapPhraseTime(p.start)),end:Math.min(duration,mapPhraseTime(p.end)),breaks:p.breaks.map(mapPhraseTime).filter(t=>t>0&&t<duration)}))};
    if(new Set(resources.shots.filter(s=>!s.excluded&&s.semanticStatus==='complete').map(s=>s.episode)).size<expectedSourceCount(library))throw Error('全量素材素材理解尚未就绪');
-   const beat=60/planningMusic.bpm;events.firstEntry=firstRhythmicEntry(events,beat);let project=structuredClone(job.state.project);const generatedIds=[];
+   const beat=60/planningMusic.bpm;events.firstEntry=firstRhythmicEntry(events,beat);let project=structuredClone(job.state.project);const generatedIds=[],streamedExpression=[];
    progress(job,{phase:'Gemini 正在规划，首段就绪后立即选镜'});
-   const plan=await consumeSections(emit=>makePlan(planningMusic,[],{duration,prompt:effectiveGoal,intensity:.85,keepDialogue:body.keepDialogue!==false&&intent.dialogue_suitability>=.5,events,globalScope:true,musicIntent:intent,signal:controller.signal,onSection:(section,times)=>{check();job.sectionsReady++;job.timing.firstSectionMs??=performance.now()-started;
+   const continuationPrompt=mode==='append'?effectiveGoal+'\n仅续剪新增尾段，承接这些已存在画面，不重新安排开场：'+JSON.stringify(project.timeline.items.filter(i=>i.type==='video').sort((a,b)=>a.from-b.from).slice(-3).map(i=>i.label)):effectiveGoal;
+   const cacheDirectory=dependencies.logRoot?path.join(logRoot,'planning-buffer'):path.join(studioStore,'planning-buffer'),identity={musicId:music.id,understandingId:rawIntent.id,goal:effectiveGoal,rate:window.rate,intensity:.85,keepDialogue:body.keepDialogue!==false};
+   const cached=await bufferedPlan(cacheDirectory,identity,planningWindow,planningMusic);job.planningSource=cached?'buffer':'gemini-stream';let buffering=Promise.resolve();
+   const plan=await consumeSections(emit=>{const onSection=(section,times)=>{check();job.sectionsReady++;job.timing.firstSectionMs??=performance.now()-started;
+    if(!cached)buffering=buffering.then(()=>bufferPlanningSection(cacheDirectory,identity,section,planningWindow));
     // Warm only the query vector; each actual selection still scans the entire corpus.
-    if(ranges.some(([a,b])=>window.from+section.start*window.fps<b&&window.from+section.end*window.fps>a))void prefetch({goal:effectiveGoal,intent:[section.intent,section.visual_strategy].filter(Boolean).join('；')}).catch(()=>{});emit({section,times});}}),async({section,times})=>{
-    check();const partial={sections:[section],beatTimes:times},scoped={...events,firstEntry:section.start===0?events.firstEntry:undefined,primaryAccents:events.primaryAccents.filter(a=>a.time>=section.start&&a.time<section.end)};
-    if(!ranges.some(([a,b])=>window.from+section.start*window.fps<b&&window.from+section.end*window.fps>a))return;
+    if(ranges.some(([a,b])=>planningWindow.from+section.start*window.fps<b&&planningWindow.from+section.end*window.fps>a))void prefetch({goal:effectiveGoal,intent:[section.intent,section.visual_strategy].filter(Boolean).join('；')}).catch(()=>{});emit({section,times});};
+    if(cached){progress(job,{phase:'复用已有规划，直接逐镜续剪'});cached.sections.forEach(section=>onSection(section,cached.beatTimes));return cached;}
+    return makePlan(planningMusic,[],{duration,prompt:continuationPrompt,continuation:mode==='append',intensity:.85,keepDialogue:body.keepDialogue!==false&&intent.dialogue_suitability>=.5,events,globalScope:true,musicIntent:intent,signal:controller.signal,onSection});},async({section,times})=>{
+    check();const partial={sections:[section],beatTimes:times},scoped={...events,firstEntry:mode!=='append'&&section.start===0?events.firstEntry:undefined,primaryAccents:events.primaryAccents.filter(a=>a.time>=section.start&&a.time<section.end)};
+    if(!ranges.some(([a,b])=>planningWindow.from+section.start*window.fps<b&&planningWindow.from+section.end*window.fps>a))return;
     const policies=await chooseAccentPolicies(scoped,intent,partial,{decide:ask,logDir:folder});
-    const slots=shapeAroundAccents(slotsFromPlan(partial,planningMusic,section.end),policies.anchors,beat).flatMap(slot=>ranges.map(([a,b])=>({...slot,from:Math.max(a,window.from+Math.round(slot.start*window.fps)),to:Math.min(b,window.from+Math.round(slot.end*window.fps))})).filter(s=>s.to>s.from));
+    const slots=shapeAroundAccents(slotsFromPlan(partial,planningMusic,section.end),policies.anchors,beat).flatMap(slot=>ranges.map(([a,b])=>({...slot,from:Math.max(a,planningWindow.from+Math.round(slot.start*window.fps)),to:Math.min(b,planningWindow.from+Math.round(slot.end*window.fps))})).filter(s=>s.to>s.from));
     let selectedUntil=-1;
     for(const slot of slots){check();
      const from=Math.max(slot.from,selectedUntil);if(slot.to<=from)continue;
      const range=ranges.find(([a,b])=>a<=from&&b>from);if(!range)continue;
-     const cap=Math.min(range[1],window.from+Math.round(section.end*window.fps));
-     const durationOptions=durationChoices({from:from-window.from,totalFrames:cap-window.from,fps:window.fps,music:planningMusic,events,phrases,ending:cap===window.to&&from>cap-3*window.fps});
+     const cap=Math.min(range[1],planningWindow.from+Math.round(section.end*window.fps));
+     const durationOptions=durationChoices({from:from-planningWindow.from,totalFrames:cap-planningWindow.from,fps:window.fps,music:planningMusic,events,phrases,ending:cap===window.to&&from>cap-3*window.fps});
      const to=from+durationOptions[0].frames;
      const item={id:randomUUID(),type:'video',trackId:'picture',from,durationInFrames:to-from,label:slot.phase,mediaId:'',src:'',sourceStart:0,sourceEnd:0,sourceFps:24,speed:1,volume:-60,embeddedAudioMuted:true,sourceWidth:960,sourceHeight:540,transform:{x:0,y:0,width:960,height:540,rotation:0,opacity:1,aspectRatioLocked:true}};
      const proposal=structuredClone(project);proposal.timeline.items.push(item);
@@ -105,14 +118,19 @@ export async function startGeneration(body,library,dependencies={}){
      const choice=await choose({project:proposal,item,library,resources,goal:effectiveGoal,intent:slot.phase,ask,allowKeep:false,reserveFrames:4,visionEnabled,durationOptions,onStage:stage=>progress(job,{phase:`第 ${job.clips+1} 镜 · ${{recall:'全库召回',semantic:'语义适配判断',window:'比较动作窗口与时长',visual:'视觉选镜','window-text':'联合选择镜头与结束点'}[stage]||stage}`}),cancelled:()=>!ticket.current()||controller.signal.aborted});check();
      const selected=choice.selected.item;if(!selected.mediaId||!selected.src||!selected.mad?.shotId||selected.sourceEnd<=selected.sourceStart)throw Error('没有可播放的真实镜头，停止排布');
      const applied=applyShotDecision(project,choice.selected,resources.shots);project=applied.project;selectedUntil=selected.from+selected.durationInFrames;if(!generatedIds.includes(applied.occurrenceId))generatedIds.push(applied.occurrenceId);job.trace.push({occurrenceId:applied.occurrenceId,editAction:applied.action,selectedDurationFrames:selected.durationInFrames,durationOptions,traceUrl:choice.traceUrl,timing:choice.timing});
+     const readyAnchors=(events.structuralAccents||[]).map(e=>({...e,time:e.time+planningWindow.from/window.fps,quietStart:e.quietStart+planningWindow.from/window.fps})).filter(e=>Math.round(e.time*window.fps)<=selectedUntil);
+     const waitingIds=project.timeline.items.filter(i=>i.type==='video'&&generatedIds.includes(i.id)&&readyAnchors.some(e=>Math.abs(i.from+i.durationInFrames-Math.round(e.time*window.fps))<=1&&!i.mad?.structuralTimingProcessed?.includes(Math.round(e.time*window.fps)))).map(i=>i.id);
+     if(waitingIds.length){progress(job,{phase:'正在将停顿蓄势与重入卡点写入当前片段'});const expression=await directExpression({project,library,resources,events:{...events,structuralAccents:readyAnchors},ask,targetIds:waitingIds,structuralOnly:true,...expressionOptions(body)});check();project=expression.project;streamedExpression.push(...expression.decisions);for(const i of project.timeline.items)if(i.mad?.remapParent&&waitingIds.includes(i.mad.remapParent)&&!generatedIds.includes(i.id))generatedIds.push(i.id);}
      await publish(project,applied.action==='extend'?'当前镜头已延长，动作继续':`第 ${job.clips+1} 镜已排入`);
     }
    },{signal:controller.signal});
-   check();
-   progress(job,{phase:'镜头已排好，正在补原声、转场和效果',pendingClip:null});job.timing.roughCutMs=performance.now()-started;
-   const polished=generatedIds.length?await polish({project,library,resources,ask,cancelled:()=>controller.signal.aborted||!ticket.current(),body:{scope:{mode:'selection',selectedIds:generatedIds},goal:effectiveGoal,prompt:intent.edit_direction,audioMode:body.keepDialogue===false?'sfx':'auto',allowed:{shots:false,effects:true,transitions:true,grade:true}},onProgress:p=>progress(job,{phase:p.phase||'正在补充镜头表现'})}):{project};
-   await publish(polished.project,'生成完成 · 可以播放');job.timing.completeMs=performance.now()-started;progress(job,{status:'complete',pendingClip:null});
-   await writeFile(path.join(folder,'result.json'),JSON.stringify({plan,musicUnderstandingId:intent.id,trace:job.trace,timing:job.timing,revision:job.state.revision},null,2));
+   check();await buffering;
+   progress(job,{phase:'镜头已排好，正在安排原声与动作卡重音',pendingClip:null});job.timing.roughCutMs=performance.now()-started;
+   const polished=generatedIds.length?await polish({project,library,resources,ask,cancelled:()=>controller.signal.aborted||!ticket.current(),body:{scope:{mode:'selection',selectedIds:generatedIds},goal:effectiveGoal,prompt:intent.edit_direction,audioMode:body.keepDialogue===false?'sfx':'auto',allowed:{shots:false,effects:false,transitions:false,grade:false}},onProgress:p=>progress(job,{phase:p.phase||'正在安排原声'})}):{project};
+   check();const timelineEvents={...events,events:events.events.map(e=>({...e,time:e.time+planningWindow.from/window.fps})),primaryAccents:events.primaryAccents.map(e=>({...e,time:e.time+planningWindow.from/window.fps})),structuralAccents:(events.structuralAccents||[]).map(e=>({...e,time:e.time+planningWindow.from/window.fps,quietStart:e.quietStart+planningWindow.from/window.fps}))};
+   const expression=await directExpression({project:polished.project,library,resources,events:timelineEvents,ask,targetIds:generatedIds,...expressionOptions(body)});check();
+   await publish(expression.project,'生成完成 · 可以播放');job.timing.completeMs=performance.now()-started;progress(job,{status:'complete',pendingClip:null});
+   await writeFile(path.join(folder,'result.json'),JSON.stringify({plan,planningRange:job.planningRange,musicUnderstandingId:intent.id,trace:job.trace,expressionPolicy:automaticExpressionPolicy,expressionDecisions:[...streamedExpression,...expression.decisions],expressionSummary:expression.summary,timing:job.timing,revision:job.state.revision},null,2));
   }catch(e){controller.abort();job.status=controller.signal.aborted&&!ticket.current()?'cancelled':'error';job.error=e.message;progress(job,{phase:job.status==='cancelled'?'已停止，保留已排入镜头':'生成中止，保留已排入镜头',pendingClip:null});}
  })();return generationStatus(id);
 }

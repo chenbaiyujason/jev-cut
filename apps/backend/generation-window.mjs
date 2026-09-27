@@ -13,7 +13,7 @@ export function musicForWindow(music,understanding,events,window){
  return {
   music:{...music,duration,bpm:music.bpm*rate,beats:(music.beats||[]).filter(inside).map(mapTime),accents:(music.accents||[]).filter(a=>inside(a.time)).map(a=>({...a,time:mapTime(a.time)}))},
   intent:{...understanding,sections:understanding.sections?.filter(s=>s.start<finish&&s.end>start).map(s=>({...s,start:Math.max(0,mapTime(s.start)),end:Math.min(duration,mapTime(s.end))})),sourceWindow:{start,end:finish,rate}},
-  events:{...events,events:events.events.filter(e=>inside(e.time)).map(e=>({...e,time:mapTime(e.time)})),primaryAccents:events.primaryAccents.filter(e=>inside(e.time)).map(e=>({...e,time:mapTime(e.time)}))},
+  events:{...events,events:events.events.filter(e=>inside(e.time)).map(e=>({...e,time:mapTime(e.time)})),primaryAccents:events.primaryAccents.filter(e=>inside(e.time)).map(e=>({...e,time:mapTime(e.time)})),structuralAccents:(events.structuralAccents||[]).filter(e=>inside(e.time)).map(e=>({...e,time:mapTime(e.time),quietStart:Math.max(0,mapTime(e.quietStart)),quietSeconds:e.quietSeconds/rate}))},
  };
 }
 export function remainingIntervals(from,to,occupied){

@@ -16,6 +16,7 @@ import {
 import { useTrackDropPreviewStore } from '../stores/track-drop-preview-store'
 import { useMediaLibraryStore } from '@/features/timeline/deps/media-library-store'
 import { useProjectStore } from '@/features/timeline/deps/projects'
+import { useSelectionStore } from '@/shared/state/selection'
 import { DEFAULT_PROJECT_HEIGHT, DEFAULT_PROJECT_WIDTH } from '@/shared/projects/defaults'
 import {
   resolveMediaUrl,
@@ -414,7 +415,9 @@ export const TimelineMediaDropZone = memo(function TimelineMediaDropZone({
         return []
       }
 
-      const durationInFrames = getDefaultGeneratedLayerDurationInFrames(fps)
+      const durationInFrames = template.itemType === 'controller'
+        ? Math.round(fps * 1.5)
+        : getDefaultGeneratedLayerDurationInFrames(fps)
       const finalPosition = findNearestAvailablePreviewSpace(
         dropFrame,
         durationInFrames,
@@ -558,7 +561,9 @@ export const TimelineMediaDropZone = memo(function TimelineMediaDropZone({
         return null
       }
 
-      const durationInFrames = getDefaultGeneratedLayerDurationInFrames(fps)
+      const durationInFrames = template.itemType === 'controller'
+        ? Math.max(1, Math.round(fps * 1.5))
+        : getDefaultGeneratedLayerDurationInFrames(fps)
       const finalPosition = findNearestAvailablePreviewSpace(
         dropFrame,
         durationInFrames,
@@ -1014,6 +1019,8 @@ export const TimelineMediaDropZone = memo(function TimelineMediaDropZone({
             }
 
             addItem(templateDrop.item)
+            if (templateDrop.item.type === 'controller' && templateDrop.item.jevMatchPlaceholder)
+              useSelectionStore.getState().selectItems([templateDrop.item.id])
             return
           }
 

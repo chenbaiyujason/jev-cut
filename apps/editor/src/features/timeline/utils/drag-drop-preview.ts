@@ -11,6 +11,7 @@ export type TimelineGhostPreviewType =
   | 'lottie'
   | 'composition'
   | 'external-file'
+  | 'controller'
 
 export interface TimelineGhostPreviewLike {
   type: TimelineGhostPreviewType

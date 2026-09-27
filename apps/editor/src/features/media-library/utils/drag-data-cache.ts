@@ -36,7 +36,7 @@ export interface CompositionDragData {
 
 export interface TimelineTemplateDragData {
   type: 'timeline-template'
-  itemType: 'text' | 'shape' | 'adjustment'
+  itemType: 'text' | 'shape' | 'adjustment' | 'controller'
   label: string
   textStylePresetId?: TextStylePresetId
   shapeType?:

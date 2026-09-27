@@ -16,6 +16,8 @@ TransNetV2 的检测输入是 48×27 RGB，但时间采样仍按原始帧序列�
 
 每次填充时间轴时，从当前完整可检索素材中重新召回，再按来源、安全窗口、时长与运动要求生成可执行候选。决策模型结合当前音乐位置、前后文与证据来评分/选择，结果可以与语义相似度首位不同。差异率不是质量提升率。
 
+当前不再按检索排名固定截为16个。全部合格候选先接受独立的基础适配评分，共享主题与乐段前缀；稳定适配可缓存，最后的实际窗口选择始终读取实时上下文。具体约束与计时口径见 [候选选择与缓存](SELECTION.md)。
+
 同一素材插入还可能需要选择原声、重音、转场与调色。代码先确定哪些方案合法，模型再在其中选择，包括“保持现状”。转场需要考虑两边镜头及隐藏源帧，不能只给当前镜头贴效果。
 
 ## 工作台与事务
@@ -34,6 +36,9 @@ TransNetV2 的检测输入是 48×27 RGB，但时间采样仍按原始帧序列�
 | `apps/backend/corpus-cache.mjs` | 全库证据状态 |
 | `apps/backend/decision-recall.mjs` | 逐决策全库召回与覆盖检查 |
 | `apps/backend/global-director.mjs` | 候选选择与审计 |
+| `apps/backend/candidate-selection.mjs` | 无检索排名偏好的顺序、独立评分问题与请求分批 |
+| `apps/backend/planning-buffer.mjs` | 按源音乐时间复用已完成规划 |
+| `apps/backend/editing-policy.mjs` | 自动表现的默认启用范围 |
 | `apps/backend/director-edit.mjs` | 选区事务与表现优化 |
 | `apps/backend/progressive-generation.mjs` | 渐进时间轴生成 |
 | `apps/backend/decision-provider.mjs` | 发布版可替换模型传输适配 |

@@ -11,7 +11,7 @@ export async function cachedMusicEvents(music){
 
 export async function musicEvents(music){
   const directory=path.join(root,'.local/music-events');await mkdir(directory,{recursive:true});const file=path.join(directory,music.id+'-v1.json');
-  try{return JSON.parse(await readFile(file,'utf8'));}catch{}
+  try{const cached=JSON.parse(await readFile(file,'utf8'));if(!Array.isArray(cached.structuralAccents)){await execFile((process.env.MAD_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python')),['scripts/analyze_music_events.py',music.original,file,'--structural-only']);return JSON.parse(await readFile(file,'utf8'));}return cached;}catch{}
   await execFile((process.env.MAD_PYTHON||path.join(root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python')),['scripts/analyze_music_events.py',music.original,file]);return JSON.parse(await readFile(file,'utf8'));
 }
 
@@ -22,7 +22,8 @@ export function firstRhythmicEntry(events,beatSeconds){
 }
 
 export async function chooseAccentPolicies(events,intent,plan,{decide,logDir}){
-  const anchors=events.primaryAccents.filter(e=>e.time<plan.beatTimes.at(-1)).map((e,i)=>({...e,id:'a'+i,section:plan.sections.find(s=>s.start<=e.time&&s.end>e.time)?.intent}));
+  const strong=[...(events.structuralAccents||[]),...events.primaryAccents.filter(e=>!(events.structuralAccents||[]).some(a=>Math.abs(a.time-e.time)<.12))];
+  const anchors=strong.filter(e=>e.time<plan.beatTimes.at(-1)&&plan.sections.some(s=>s.start<=e.time&&s.end>e.time)).sort((a,b)=>a.time-b.time).map((e,i)=>({...e,id:'a'+i,section:plan.sections.find(s=>s.start<=e.time&&s.end>e.time)?.intent}));
   const policies=['cut','carry','breathe'];
   const questions=Object.fromEntries(anchors.flatMap(e=>policies.map(policy=>[e.id+'_'+policy,{type:'score',instructions:`Score ${policy} at anchor ${e.id}. cut: change shot on accent; carry: let an action reach its peak within a shot; breathe: briefly calm the preceding image, then release on accent. Use musical context and contrast; avoid treating all transients as equal.`,criteria:['不适合','一般','合适','很合适']}])));
   if(!anchors.length)return {anchors:[],calls:0,ms:0};
@@ -38,7 +39,7 @@ export function shapeAroundAccents(slots,anchors,beatSeconds){
   let boundaries=[slots[0].start,...slots.map(s=>s.end)];
   const within=(t,a,b)=>t>a+.025&&t<b-.025;
   for(const anchor of anchors){
-    const t=frame(anchor.time);if(t<.2||t>duration-.2)continue;
+    const t=frame(anchor.time);if(t<beginning+.025||t<.2||t>duration-.2)continue;
     if(anchor.policy==='carry'){
       const a=Math.max(beginning,frame(t-beatSeconds*.55)),b=Math.min(duration,frame(t+beatSeconds*.55));
       boundaries=boundaries.filter(x=>!within(x,a,b));boundaries.push(a,b);
@@ -49,7 +50,7 @@ export function shapeAroundAccents(slots,anchors,beatSeconds){
       if(anchor.policy==='breathe')boundaries.push(a);
     }
   }
-  boundaries=[...new Set(boundaries)].sort((a,b)=>a-b);
+  boundaries=[...new Set(boundaries)].filter(t=>t>=beginning&&t<=duration).sort((a,b)=>a-b);
   const priority=t=>t===beginning||t===duration?3:anchors.some(a=>Math.abs(frame(a.time)-t)<.02&&a.policy!=='carry')?2:1;
   for(let i=1;i<boundaries.length;){if(boundaries[i]-boundaries[i-1]<.16&&!(priority(boundaries[i])===3&&priority(boundaries[i-1])===3)){const remove=priority(boundaries[i])>priority(boundaries[i-1])?i-1:i;boundaries.splice(remove,1);i=Math.max(1,i-1);}else i++;}
   return boundaries.slice(0,-1).map((start,i)=>{

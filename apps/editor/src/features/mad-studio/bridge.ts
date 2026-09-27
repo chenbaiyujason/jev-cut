@@ -45,6 +45,8 @@ interface BridgeState {
   operations: number
   generationId: string | null
   lastScopedResult: ScopedEditResult | null
+  lastJevMatchResult: JevMatchResult | null
+  activeInspectorTab: 'edit' | 'match'
   autoExtend: boolean
   playWhileGenerating: boolean
   waitingForClip: boolean
@@ -65,6 +67,8 @@ export const useMadBridge = create<BridgeState>(() => ({
   operations: 0,
   generationId: null,
   lastScopedResult: null,
+  lastJevMatchResult: null,
+  activeInspectorTab: 'edit',
   autoExtend: true,
   playWhileGenerating: true,
   waitingForClip: false,
@@ -574,6 +578,57 @@ export async function cancelMadGeneration(): Promise<void> {
 
 export async function generateMad(musicId: string, prompt: string, duration: number, musicStart=0): Promise<void> {
   return runMusicGeneration('new',musicId,prompt,duration,musicStart)
+}
+
+export interface JevMatchResult {
+  applied: boolean
+  placeholderId: string
+  item: { from: number; durationInFrames: number; label: string }
+  visual: string
+  durationSeconds: number
+  remainingSeconds: number
+  visibleMs?: number
+  beatReason: string
+  scope: { eligible: number; episodes: number[] }
+  traceUrl: string
+  state: StudioProject
+  timing: { prepareMs: number; modelMs: number; totalMs: number }
+}
+
+export async function matchJevPlaceholder(placeholderId: string, prompt: string, visionEnabled = false): Promise<JevMatchResult> {
+  const started = performance.now()
+  let result: JevMatchResult | undefined
+  await exclusive(async () => {
+    if (!envelope || useMadBridge.getState().conflict) throw new Error('请先同步工程')
+    if (useCompositionNavigationStore.getState().activeCompositionId !== null) throw new Error('请先返回主时间轴')
+    try {
+      await flushLocal()
+      usePlaybackStore.getState().pause()
+      const signature = editorialSignature(currentProject())
+      useMadBridge.setState({ pending: true, applying: true, phase: 'Jev 匹配：全库搜索与节拍分析', error: null })
+      result = await studioRequest<JevMatchResult>('studio/jev-match', {
+        method: 'POST',
+        body: JSON.stringify({ baseRevision: envelope.revision, placeholderId, prompt, visionEnabled }),
+      })
+      if (result.applied) {
+        if (signature !== editorialSignature(currentProject())) {
+          useMadBridge.setState({ conflict: true })
+          throw new Error('匹配期间时间轴发生了修改，已保留本地编辑，请先同步工程')
+        }
+        await applyRemote(result.state)
+        result.visibleMs = performance.now() - started
+        useMadBridge.setState({ lastJevMatchResult: result, phase: 'Jev 匹配完成 · 可撤销' })
+      }
+    } catch (error) {
+      if (error instanceof StudioApiError && error.status === 409) useMadBridge.setState({ conflict: true })
+      useMadBridge.setState({ phase: '匹配未完成 · 占位节点已保留' })
+      throw error
+    } finally {
+      useMadBridge.setState({ pending: false, applying: false })
+    }
+  })
+  if (!result) throw new Error('Jev 匹配未完成')
+  return result
 }
 
 export async function regenerateCurrentMusic(mode:'append'|'rebuild',prompt?:string,trackId?:string): Promise<void> {

@@ -1,7 +1,13 @@
 {
   "format": 1,
-  "snapshot": "20260927-184537-943400",
+  "snapshot": "20260927-194804-840000",
   "files": {
+    "apps/backend/candidate-selection.mjs": {
+      "origin": "backend",
+      "sourcePath": "candidate-selection.mjs",
+      "sourceHash": "e4c9275ff541f6d93ace140959b7d5506c0c7c80a478030c106ee1f785dea22f",
+      "exportedHash": "e4c9275ff541f6d93ace140959b7d5506c0c7c80a478030c106ee1f785dea22f"
+    },
     "apps/backend/catalog.mjs": {
       "origin": "backend",
       "sourcePath": "catalog.mjs",
@@ -47,8 +53,8 @@
     "apps/backend/director-live.mjs": {
       "origin": "backend",
       "sourcePath": "director-live.mjs",
-      "sourceHash": "8403344bd62e06efb5c6ed4f123ca0ebb234bb6e53012f19f41b5569915f2c83",
-      "exportedHash": "8403344bd62e06efb5c6ed4f123ca0ebb234bb6e53012f19f41b5569915f2c83"
+      "sourceHash": "3de1a468d107897693dc37b0cc560086b4724a7c4b9310038843560ef9df3933",
+      "exportedHash": "3de1a468d107897693dc37b0cc560086b4724a7c4b9310038843560ef9df3933"
     },
     "apps/backend/docs/STUDIO_TECHNIQUES.md": {
       "origin": "backend",
@@ -62,6 +68,12 @@
       "sourceHash": "d9c25a1932615e86f22045e5cb453fd81f66c475e64cfa6b538500612a196223",
       "exportedHash": "d9c25a1932615e86f22045e5cb453fd81f66c475e64cfa6b538500612a196223"
     },
+    "apps/backend/editing-policy.mjs": {
+      "origin": "backend",
+      "sourcePath": "editing-policy.mjs",
+      "sourceHash": "ad1de4f59eab237b5808a67406af97ec706e4bd8ee8bd94eb7052188372c3cdb",
+      "exportedHash": "ad1de4f59eab237b5808a67406af97ec706e4bd8ee8bd94eb7052188372c3cdb"
+    },
     "apps/backend/evidence-worker.mjs": {
       "origin": "backend",
       "sourcePath": "evidence-worker.mjs",
@@ -71,8 +83,8 @@
     "apps/backend/expression-director.mjs": {
       "origin": "backend",
       "sourcePath": "expression-director.mjs",
-      "sourceHash": "519584d6f1397d4a56a89ef3070f7a02f6ae11f3d6b8ec7fc19a2b779b8da4d9",
-      "exportedHash": "1025bf9262fd2771bee4e94c75fee276063051040585e6eb7eaed0a8859261f9"
+      "sourceHash": "b0b2927d08e3acbb6c6f6adfecd79d361352d9e57e91720fa448424b1fb7f344",
+      "exportedHash": "2b2f17b583417a52e6932a4eab6b0b12027d9da75ba139fa09b522ba2e24ab92"
     },
     "apps/backend/gemini-stream.mjs": {
       "origin": "backend",
@@ -89,14 +101,14 @@
     "apps/backend/generation-window.mjs": {
       "origin": "backend",
       "sourcePath": "generation-window.mjs",
-      "sourceHash": "2f5672a7fe9db44691193eef0d914f5f103b430491eacdf6912fc72be29007fc",
-      "exportedHash": "2f5672a7fe9db44691193eef0d914f5f103b430491eacdf6912fc72be29007fc"
+      "sourceHash": "919e2dd41b208586251dc0afc2bd35e16fc382e62f82c4e5fb6acc002b9ed5b8",
+      "exportedHash": "919e2dd41b208586251dc0afc2bd35e16fc382e62f82c4e5fb6acc002b9ed5b8"
     },
     "apps/backend/global-director.mjs": {
       "origin": "backend",
       "sourcePath": "global-director.mjs",
-      "sourceHash": "6c8eb196ad8d4dac2feb9cb480b6d1c26ba652104bd822436033d1cd80e0cdc3",
-      "exportedHash": "9369aaf03cfd5a2589ec374f321e0c5f5c30f418eb7ce0de0ad6192671f65bf7"
+      "sourceHash": "30ecb5188c411bea85242a31d1be26823e514e41536dd3588e6d493888f53bf4",
+      "exportedHash": "b5155e162c428696c8f961f95fca42de3d0db896ff90cb9b91ebfcdc91a5a597"
     },
     "apps/backend/global-evidence.mjs": {
       "origin": "backend",
@@ -113,8 +125,8 @@
     "apps/backend/global-sequence.mjs": {
       "origin": "backend",
       "sourcePath": "global-sequence.mjs",
-      "sourceHash": "fe86f1fb150a15d12b108b78c692d536e75fd23a022847a88a5b90f7be935044",
-      "exportedHash": "6cf74f1e97c31f983144d918fb38a40bb29d00746e3f9537b4cf279be661a30b"
+      "sourceHash": "69c8ee7d405593c592f739f2f8d42e94ecd8e0bd2c0bb5e020e7f77b901046e0",
+      "exportedHash": "b694c9f8ed6a6c1bd3acd23f1258a3b2be60323e14aaf14a0885a5a3bc082f82"
     },
     "apps/backend/local-embeddings.mjs": {
       "origin": "backend",
@@ -134,6 +146,12 @@
       "sourceHash": "cdb9265baab54260b1424ead7e74b636102a38a752108ffc373335fc591632dd",
       "exportedHash": "cdb9265baab54260b1424ead7e74b636102a38a752108ffc373335fc591632dd"
     },
+    "apps/backend/narrative-policy.mjs": {
+      "origin": "backend",
+      "sourcePath": "narrative-policy.mjs",
+      "sourceHash": "1b7f8a37e71d011d17afaca0fa3b47abef2e41c3af0cd65e33437c5a9166d8ec",
+      "exportedHash": "1b7f8a37e71d011d17afaca0fa3b47abef2e41c3af0cd65e33437c5a9166d8ec"
+    },
     "apps/backend/package.json": {
       "origin": "backend",
       "sourcePath": "package.json",
@@ -146,11 +164,17 @@
       "sourceHash": "9bc2c99cf9f1e3919d38945c54ecfd5a4053dc67b13167f34f041a8f66851cd9",
       "exportedHash": "9bc2c99cf9f1e3919d38945c54ecfd5a4053dc67b13167f34f041a8f66851cd9"
     },
+    "apps/backend/planning-buffer.mjs": {
+      "origin": "backend",
+      "sourcePath": "planning-buffer.mjs",
+      "sourceHash": "dfdc6c8c4733cda64878160394e17e6467228800a70d7179408b82145257f3d3",
+      "exportedHash": "dfdc6c8c4733cda64878160394e17e6467228800a70d7179408b82145257f3d3"
+    },
     "apps/backend/planning.mjs": {
       "origin": "backend",
       "sourcePath": "planning.mjs",
-      "sourceHash": "afcf48241a6650143258771cd6bc0f3084d7449c4d3b0220b5c047e09aa6f274",
-      "exportedHash": "88fddf0eec938f27b34d51e938cf6edcefa378c333901df27aa593a21ab2e287"
+      "sourceHash": "3af8fc011332b8f3dd3e8c3470e58a2b94fb357e205932c6c68a1e1325ca4f17",
+      "exportedHash": "7a420a6451a4e5ecbc8843873013a62ee9858b44a884b36a04e38053f9688ef8"
     },
     "apps/backend/production-menu.mjs": {
       "origin": "backend",
@@ -161,8 +185,8 @@
     "apps/backend/progressive-generation.mjs": {
       "origin": "backend",
       "sourcePath": "progressive-generation.mjs",
-      "sourceHash": "82786cad1f31c1f5c9a496dae793aaa17026d6982124015069142c1202bb840f",
-      "exportedHash": "b33506f04da996f9956a9675a1348f31be7ecd105eacd0608477bc896b88a5ca"
+      "sourceHash": "eeabf176b55b211f5646c2a02670f0714dc2bace78fc2d1e630a183bf89d5c8f",
+      "exportedHash": "6b30606a4a0eee3b3c9aa4ffe23661f347916e2e1218f3c343ce09d03cfbff13"
     },
     "apps/backend/query-vectors.mjs": {
       "origin": "backend",
@@ -197,8 +221,8 @@
     "apps/backend/rhythm.mjs": {
       "origin": "backend",
       "sourcePath": "rhythm.mjs",
-      "sourceHash": "639799a9f00fe0cf9e21d89a46e1a0bb4227b8cbaa8173d2cc4aa4bc30e10351",
-      "exportedHash": "0457f6d26cbdacf8f88a63b3cbe461cd7d9244013faad480b0708e0c26235f59"
+      "sourceHash": "7a4808f50c6b057b0c0d79227ce70b7767321f64ead30ecfd51b8b83d0122edc",
+      "exportedHash": "df90c232059dfa148efedb0addc6f9ef7999cc36ec79a4f122f3fe072cf30021"
     },
     "apps/backend/scripts/analyze.py": {
       "origin": "backend",
@@ -209,8 +233,8 @@
     "apps/backend/scripts/analyze_music_events.py": {
       "origin": "backend",
       "sourcePath": "scripts/analyze_music_events.py",
-      "sourceHash": "4220fe90db6850a8b56e8f8c0d22b2d15185d0407c3587d0f28065d2c905e15a",
-      "exportedHash": "4220fe90db6850a8b56e8f8c0d22b2d15185d0407c3587d0f28065d2c905e15a"
+      "sourceHash": "473456358644362765306fab80fca1710024360968e8a4ef7f0c2bc209c731a1",
+      "exportedHash": "473456358644362765306fab80fca1710024360968e8a4ef7f0c2bc209c731a1"
     },
     "apps/backend/scripts/build-embeddings.mjs": {
       "origin": "backend",
@@ -311,8 +335,8 @@
     "apps/backend/semantic-decision-cache.mjs": {
       "origin": "backend",
       "sourcePath": "semantic-decision-cache.mjs",
-      "sourceHash": "7668ffbbc03654b7531b8bdbf65872bd318107432afe7c12f9093eb618c5da1f",
-      "exportedHash": "7668ffbbc03654b7531b8bdbf65872bd318107432afe7c12f9093eb618c5da1f"
+      "sourceHash": "1161598d46f671275a2b895c67d6e2c56f8fb575e663a631de01d5a45dd24805",
+      "exportedHash": "1161598d46f671275a2b895c67d6e2c56f8fb575e663a631de01d5a45dd24805"
     },
     "apps/backend/sequence.mjs": {
       "origin": "backend",
@@ -329,8 +353,8 @@
     "apps/backend/shot-pacing.mjs": {
       "origin": "backend",
       "sourcePath": "shot-pacing.mjs",
-      "sourceHash": "3394841d5dbebcc354f31dcbaa03b0b40a1b4af6fd44ba350add99f98cbf3859",
-      "exportedHash": "3394841d5dbebcc354f31dcbaa03b0b40a1b4af6fd44ba350add99f98cbf3859"
+      "sourceHash": "df21854a67c72f5104d174fc15059400165346979a7ab776c2a406ce64d706b7",
+      "exportedHash": "df21854a67c72f5104d174fc15059400165346979a7ab776c2a406ce64d706b7"
     },
     "apps/backend/source-sound.mjs": {
       "origin": "backend",
@@ -341,14 +365,14 @@
     "apps/backend/story-continuity.mjs": {
       "origin": "backend",
       "sourcePath": "story-continuity.mjs",
-      "sourceHash": "db3b6a8679bcc6d16bd4546658058dde972b5e823872ff0023f753e3b52f7784",
-      "exportedHash": "db3b6a8679bcc6d16bd4546658058dde972b5e823872ff0023f753e3b52f7784"
+      "sourceHash": "16011235a6a4cf9bce8a7ebf56be1b2a40d7b08c794ae2049894599053db7b5b",
+      "exportedHash": "47fab6c2d0fd63a3a6afec704ffdbdd929ced73c0fd2a37b7712b6a6a74fd3ba"
     },
     "apps/backend/studio-api.mjs": {
       "origin": "backend",
       "sourcePath": "studio-api.mjs",
-      "sourceHash": "0be848a69d10766ed5481b751533d9a0084a86c83529d35c998a21e0b5c76751",
-      "exportedHash": "2c35e920764015685c0dfea20046fe897fc8e961243c805882db935be28f1b7e"
+      "sourceHash": "a73051fdb7024ba1e6472f9f49713c8f810a6802de0c177d189a87e0ee2c97d2",
+      "exportedHash": "bca5a2dff44d8062c94533e2ed61d3dcdc9ff49c5dc7a9f03591596d4e3c085a"
     },
     "apps/backend/studio-project.mjs": {
       "origin": "backend",
@@ -361,6 +385,12 @@
       "sourcePath": "studio-techniques.mjs",
       "sourceHash": "0aa5013a5053f87c688151fe9d68d503b535d470acfe9a361052a41330c8959e",
       "exportedHash": "0aa5013a5053f87c688151fe9d68d503b535d470acfe9a361052a41330c8959e"
+    },
+    "apps/backend/tests/candidate-selection.test.mjs": {
+      "origin": "backend",
+      "sourcePath": "tests/candidate-selection.test.mjs",
+      "sourceHash": "1d5f3feb2c4f620d84d5e04574b9a87d4711b31bedd48ff48699d2db93c8d5a9",
+      "exportedHash": "7e0ef6f05864f2cf2bf79b055a11144f5f954b4d82bfd598638e569d44d885f2"
     },
     "apps/backend/tests/catalog.test.mjs": {
       "origin": "backend",
@@ -389,8 +419,8 @@
     "apps/backend/tests/director-edit.test.mjs": {
       "origin": "backend",
       "sourcePath": "tests/director-edit.test.mjs",
-      "sourceHash": "5b01c318d0503184f9c4c51051cfbe0363792ba5358239e7d1e96b21c6104add",
-      "exportedHash": "8452fc9a56d43ad6d775ab4b9a144808e79bfeaa4836a4595923e00c63d636df"
+      "sourceHash": "001f72a3f57369407f1d80e4dbda291f073e099442988dc648e57f00b7267b39",
+      "exportedHash": "12607d465ecf1f1a20e572a73b47aeb75cef8e55de185ed711132e07d0a2934d"
     },
     "apps/backend/tests/director-live.test.mjs": {
       "origin": "backend",
@@ -425,8 +455,8 @@
     "apps/backend/tests/progressive-generation.test.mjs": {
       "origin": "backend",
       "sourcePath": "tests/progressive-generation.test.mjs",
-      "sourceHash": "9b9703047cfc7212d21d7b9512af9fdd95536d6e69d483bfb83016681375c4e2",
-      "exportedHash": "9b9703047cfc7212d21d7b9512af9fdd95536d6e69d483bfb83016681375c4e2"
+      "sourceHash": "e1710d1b43618060c821ddfa420a925051c135ba730ae01bf52008830d91f513",
+      "exportedHash": "e1710d1b43618060c821ddfa420a925051c135ba730ae01bf52008830d91f513"
     },
     "apps/backend/tests/recall-pruning.test.mjs": {
       "origin": "backend",
@@ -443,8 +473,8 @@
     "apps/backend/tests/rhythm.test.mjs": {
       "origin": "backend",
       "sourcePath": "tests/rhythm.test.mjs",
-      "sourceHash": "43e45f9dd17acf868d6ac067597fe756f8da8ab28fa464e93ca6753b1aae2fc2",
-      "exportedHash": "43e45f9dd17acf868d6ac067597fe756f8da8ab28fa464e93ca6753b1aae2fc2"
+      "sourceHash": "11963b3d21d58d80e9320f7cafc246785e41fdc0d2e35f98a1fefb4d6b68e1ab",
+      "exportedHash": "11963b3d21d58d80e9320f7cafc246785e41fdc0d2e35f98a1fefb4d6b68e1ab"
     },
     "apps/backend/tests/story-continuity.test.mjs": {
       "origin": "backend",
@@ -1847,8 +1877,8 @@
     "apps/editor/src/features/editor/components/editor-extension.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/editor/components/editor-extension.tsx",
-      "sourceHash": "3d74bfde02098e30e445aeee48edbc637c84efa74b0ee182c3908444c13f755f",
-      "exportedHash": "3d74bfde02098e30e445aeee48edbc637c84efa74b0ee182c3908444c13f755f"
+      "sourceHash": "927e5a2db89fae683449560a1190b390f3cf739d324e960b58bc3b4189b4f9a2",
+      "exportedHash": "927e5a2db89fae683449560a1190b390f3cf739d324e960b58bc3b4189b4f9a2"
     },
     "apps/editor/src/features/editor/components/editor.test.tsx": {
       "origin": "editor",
@@ -2285,8 +2315,8 @@
     "apps/editor/src/features/editor/components/properties-sidebar/index.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/editor/components/properties-sidebar/index.tsx",
-      "sourceHash": "f229e22f65fe40fa3a15c1b9515828e0e7fbba2edde53381dcb562aa8c8ea38d",
-      "exportedHash": "f229e22f65fe40fa3a15c1b9515828e0e7fbba2edde53381dcb562aa8c8ea38d"
+      "sourceHash": "584b4dd093c35e298e1c69126d3d1b09b459173ea5bd7fe28fa5b90938f0d69b",
+      "exportedHash": "584b4dd093c35e298e1c69126d3d1b09b459173ea5bd7fe28fa5b90938f0d69b"
     },
     "apps/editor/src/features/editor/components/properties-sidebar/marker-panel/index.tsx": {
       "origin": "editor",
@@ -4985,8 +5015,8 @@
     "apps/editor/src/features/mad-studio/bridge.ts": {
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/bridge.ts",
-      "sourceHash": "5240f942c979971e7a2070cb664c2f6bf7ecb828b78cd920ad10ad3fef1f69ba",
-      "exportedHash": "7bf273f8c03922199ecd6540430463efaab9f9843973e9056847cf0fbf940ec5"
+      "sourceHash": "091c2c65ab0c871a3285ad5ea457fdb8e62e0d37b0fbc2171643f936f7b654f2",
+      "exportedHash": "d172edd673c3337ff480deb3a1bb7f7088f1eb8060f00a336f6130f443388dad"
     },
     "apps/editor/src/features/mad-studio/decision-panel.tsx": {
       "origin": "editor",
@@ -5003,8 +5033,8 @@
     "apps/editor/src/features/mad-studio/generation-placeholder.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/generation-placeholder.tsx",
-      "sourceHash": "4e0d6932c9089cdacb7df3f0d0490768ab1783c66e4f777af92cc6bd964958d4",
-      "exportedHash": "4e0d6932c9089cdacb7df3f0d0490768ab1783c66e4f777af92cc6bd964958d4"
+      "sourceHash": "71fc35a7bbd39b1cf90ea47aaf32cb0554906fab151eb7722bccf2e8c3b1ff53",
+      "exportedHash": "71fc35a7bbd39b1cf90ea47aaf32cb0554906fab151eb7722bccf2e8c3b1ff53"
     },
     "apps/editor/src/features/mad-studio/generation-playback.test.ts": {
       "origin": "editor",
@@ -5027,8 +5057,8 @@
     "apps/editor/src/features/mad-studio/jev-chrome.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/jev-chrome.tsx",
-      "sourceHash": "3dc0837d01a133485b6e48343b4bb22ef1466233215ef7437a6ad230d8749a0a",
-      "exportedHash": "2c29d984e1694ec21205df5fc298a4c0c3003497c82c23ee4cc27d30d73a365e"
+      "sourceHash": "250ef30a76bf5f31683df0c1aa6f7c43068a6bc6cfff7812a01b856d1a727cf1",
+      "exportedHash": "3f4c0a83c3b70cd98d9a3aaa62a9a6f42e42373bb8932be8a853616aaca278f6"
     },
     "apps/editor/src/features/mad-studio/jev-label.ts": {
       "origin": "editor",
@@ -5036,17 +5066,29 @@
       "sourceHash": "6cf5040e902aa549aed2485cf601e1be9cd0b68e4d3c326a0ecbbe1807aabbbe",
       "exportedHash": "6cf5040e902aa549aed2485cf601e1be9cd0b68e4d3c326a0ecbbe1807aabbbe"
     },
+    "apps/editor/src/features/mad-studio/jev-match-panel.tsx": {
+      "origin": "editor",
+      "sourcePath": "src/features/mad-studio/jev-match-panel.tsx",
+      "sourceHash": "f17dcea6b3d33739b0971ed46194927022526b71611bc2fc45fd826a8a3174f2",
+      "exportedHash": "f17dcea6b3d33739b0971ed46194927022526b71611bc2fc45fd826a8a3174f2"
+    },
+    "apps/editor/src/features/mad-studio/jev-match-tool.tsx": {
+      "origin": "editor",
+      "sourcePath": "src/features/mad-studio/jev-match-tool.tsx",
+      "sourceHash": "cc43f095f8e3b272be3ed98e78803691763ffff6d7fe8b7a31485db43b38608f",
+      "exportedHash": "cc43f095f8e3b272be3ed98e78803691763ffff6d7fe8b7a31485db43b38608f"
+    },
     "apps/editor/src/features/mad-studio/mad-studio.css": {
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/mad-studio.css",
-      "sourceHash": "36b963a312073e29847086382aba2ca319ff2f4e1c6c50c2539086717c2bf8b1",
-      "exportedHash": "36b963a312073e29847086382aba2ca319ff2f4e1c6c50c2539086717c2bf8b1"
+      "sourceHash": "5254d69d4da72bf708047f9858a28b792b25b8cffd29b030eb53e3fafaad44c7",
+      "exportedHash": "5254d69d4da72bf708047f9858a28b792b25b8cffd29b030eb53e3fafaad44c7"
     },
     "apps/editor/src/features/mad-studio/mad-studio.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/mad-studio/mad-studio.tsx",
-      "sourceHash": "02aa5c7bd5217df84cd566144df3c5a972783c251f257ecedca407b1a648be94",
-      "exportedHash": "02aa5c7bd5217df84cd566144df3c5a972783c251f257ecedca407b1a648be94"
+      "sourceHash": "1b40c75af788fa7db59d8bcfd81adcaca1cf15f2dc8ec6e054963bfe92b7f1cc",
+      "exportedHash": "1b40c75af788fa7db59d8bcfd81adcaca1cf15f2dc8ec6e054963bfe92b7f1cc"
     },
     "apps/editor/src/features/mad-studio/music-upload.test.ts": {
       "origin": "editor",
@@ -5807,8 +5849,8 @@
     "apps/editor/src/features/media-library/utils/drag-data-cache.ts": {
       "origin": "editor",
       "sourcePath": "src/features/media-library/utils/drag-data-cache.ts",
-      "sourceHash": "661a90462751567d07cef5787904d6f4c3618240c3ec03d122e95e5d2ce8ee83",
-      "exportedHash": "661a90462751567d07cef5787904d6f4c3618240c3ec03d122e95e5d2ce8ee83"
+      "sourceHash": "2be6185741a59cd21279efe19b3ca6d41792b628070529cea7d20a3b32189ce9",
+      "exportedHash": "2be6185741a59cd21279efe19b3ca6d41792b628070529cea7d20a3b32189ce9"
     },
     "apps/editor/src/features/media-library/utils/file-drop.test.ts": {
       "origin": "editor",
@@ -7511,8 +7553,8 @@
     "apps/editor/src/features/project-bundle/schemas/project-schema.ts": {
       "origin": "editor",
       "sourcePath": "src/features/project-bundle/schemas/project-schema.ts",
-      "sourceHash": "43233ae3408d9ec080223627ba3c818b5e98a6b37da4f41d3c84338c55ea509f",
-      "exportedHash": "43233ae3408d9ec080223627ba3c818b5e98a6b37da4f41d3c84338c55ea509f"
+      "sourceHash": "a0bba1636a3502af0faf692bc542a95ca0a550ad34410a839cc7e1e4adbc87da",
+      "exportedHash": "a0bba1636a3502af0faf692bc542a95ca0a550ad34410a839cc7e1e4adbc87da"
     },
     "apps/editor/src/features/project-bundle/services/bundle-animation-presets.test.ts": {
       "origin": "editor",
@@ -8297,8 +8339,8 @@
     "apps/editor/src/features/timeline/components/timeline-header.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/components/timeline-header.tsx",
-      "sourceHash": "4eed51a1611a6973ad9891870bca69b783cb23a573216f739380a6643a7f8ab1",
-      "exportedHash": "4eed51a1611a6973ad9891870bca69b783cb23a573216f739380a6643a7f8ab1"
+      "sourceHash": "a731db1536bee56c9f61afa0c0c95f47a0df985d187e6d4693e6d2b816f261f0",
+      "exportedHash": "a731db1536bee56c9f61afa0c0c95f47a0df985d187e6d4693e6d2b816f261f0"
     },
     "apps/editor/src/features/timeline/components/timeline-in-out-markers.tsx": {
       "origin": "editor",
@@ -8735,8 +8777,8 @@
     "apps/editor/src/features/timeline/components/timeline-media-drop-zone.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/components/timeline-media-drop-zone.tsx",
-      "sourceHash": "71578f85db7f2f99046105f6030d47079cb7c4d9ec36e44dbe61e191a542cb8b",
-      "exportedHash": "71578f85db7f2f99046105f6030d47079cb7c4d9ec36e44dbe61e191a542cb8b"
+      "sourceHash": "504313fcbde99169f34d6b38c6a3b1808e9f40c876eb5258d34bf0e74228e7b2",
+      "exportedHash": "504313fcbde99169f34d6b38c6a3b1808e9f40c876eb5258d34bf0e74228e7b2"
     },
     "apps/editor/src/features/timeline/components/timeline-navigator-utils.ts": {
       "origin": "editor",
@@ -8849,8 +8891,8 @@
     "apps/editor/src/features/timeline/components/timeline-track.tsx": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/components/timeline-track.tsx",
-      "sourceHash": "4949e8deb849b6ddae77dc43a4a40dca998aa569a6773ff82a5a0a8cb2eb6704",
-      "exportedHash": "4949e8deb849b6ddae77dc43a4a40dca998aa569a6773ff82a5a0a8cb2eb6704"
+      "sourceHash": "5a7b9596be52fd24f3d0d17bf4b9edc8b946eabdd6348afa6ec669603b59f848",
+      "exportedHash": "5a7b9596be52fd24f3d0d17bf4b9edc8b946eabdd6348afa6ec669603b59f848"
     },
     "apps/editor/src/features/timeline/components/timeline.tsx": {
       "origin": "editor",
@@ -10049,8 +10091,8 @@
     "apps/editor/src/features/timeline/stores/new-track-zone-preview-store.ts": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/stores/new-track-zone-preview-store.ts",
-      "sourceHash": "43be3e17d0222577634c341ee7af5331b0663efda5c9de25524a7a20e8063c7d",
-      "exportedHash": "43be3e17d0222577634c341ee7af5331b0663efda5c9de25524a7a20e8063c7d"
+      "sourceHash": "5843e63aa698cca209fab1da8c3eadf0b2076da137f08bca66503e26ab1779c1",
+      "exportedHash": "5843e63aa698cca209fab1da8c3eadf0b2076da137f08bca66503e26ab1779c1"
     },
     "apps/editor/src/features/timeline/stores/reverse-conform-dialog-store.ts": {
       "origin": "editor",
@@ -10199,8 +10241,8 @@
     "apps/editor/src/features/timeline/stores/track-drop-preview-store.ts": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/stores/track-drop-preview-store.ts",
-      "sourceHash": "2bd3de1fb18059ca2c67178bf8e33b0c71086b409d3888ad0580bfdc7d633a31",
-      "exportedHash": "2bd3de1fb18059ca2c67178bf8e33b0c71086b409d3888ad0580bfdc7d633a31"
+      "sourceHash": "ff56b6bf89582bde5269034224c62720622a897f32fea4f242f792e04e6f55db",
+      "exportedHash": "ff56b6bf89582bde5269034224c62720622a897f32fea4f242f792e04e6f55db"
     },
     "apps/editor/src/features/timeline/stores/track-push-preview-store.ts": {
       "origin": "editor",
@@ -10397,8 +10439,8 @@
     "apps/editor/src/features/timeline/utils/drag-drop-preview.ts": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/utils/drag-drop-preview.ts",
-      "sourceHash": "c3c72a7d66c1294e92a8e65bba6f7c864e3ced94162bdae3537e3b0b42b47a28",
-      "exportedHash": "c3c72a7d66c1294e92a8e65bba6f7c864e3ced94162bdae3537e3b0b42b47a28"
+      "sourceHash": "df485541d523000e8b06436518fe12a5cf0a3705198a2389a06840b658ee0bbb",
+      "exportedHash": "df485541d523000e8b06436518fe12a5cf0a3705198a2389a06840b658ee0bbb"
     },
     "apps/editor/src/features/timeline/utils/drag-threshold.test.ts": {
       "origin": "editor",
@@ -10565,8 +10607,8 @@
     "apps/editor/src/features/timeline/utils/generated-layer-items.ts": {
       "origin": "editor",
       "sourcePath": "src/features/timeline/utils/generated-layer-items.ts",
-      "sourceHash": "679f0364a3bd90e2ba3b42ff0358d18574e0e3f73509a036d6fda2dfd80001ca",
-      "exportedHash": "679f0364a3bd90e2ba3b42ff0358d18574e0e3f73509a036d6fda2dfd80001ca"
+      "sourceHash": "6c88fdd98d0571f766144186d260379dc19ad5f53f34c0c882a199546a42a48e",
+      "exportedHash": "6c88fdd98d0571f766144186d260379dc19ad5f53f34c0c882a199546a42a48e"
     },
     "apps/editor/src/features/timeline/utils/grade-clipboard-ops.test.ts": {
       "origin": "editor",
@@ -16373,8 +16415,8 @@
     "apps/editor/src/types/timeline.ts": {
       "origin": "editor",
       "sourcePath": "src/types/timeline.ts",
-      "sourceHash": "d8e28e39ecbdac722b90b144c5f97e7c0ea00338b39c0b5a0fa39332331751c4",
-      "exportedHash": "d8e28e39ecbdac722b90b144c5f97e7c0ea00338b39c0b5a0fa39332331751c4"
+      "sourceHash": "a91ccf055f7dc73a533e8a8ed972024eacfdeff47c64226081eb735cfce5665e",
+      "exportedHash": "a91ccf055f7dc73a533e8a8ed972024eacfdeff47c64226081eb735cfce5665e"
     },
     "apps/editor/src/types/transform.ts": {
       "origin": "editor",

@@ -389,6 +389,8 @@ export type ControllerItem = BaseTimelineItem & {
   type: 'controller'
   controllerKind: 'null'
   transform: TransformProperties
+  /** Invisible Jev slot: selects a full-corpus match from the right inspector. */
+  jevMatchPlaceholder?: boolean
 }
 
 // Composition item - references a sub-composition (pre-comp)

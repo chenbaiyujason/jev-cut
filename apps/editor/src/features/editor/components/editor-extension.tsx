@@ -8,7 +8,15 @@ export interface EditorExtension {
   setActive: (active: boolean) => void
   projectControls: ReactNode
   toolbarActions: ReactNode
+  timelineToolbarActions?: ReactNode
   inspector: ReactNode
+  extraTabs?: Array<{
+    id: string
+    label: string
+    active: boolean
+    onSelect: () => void
+  }>
+  onInspectorSelect?: () => void
 }
 export const EditorExtensionContext = createContext<EditorExtension | null>(null)
 export const useEditorExtension = () => useContext(EditorExtensionContext)

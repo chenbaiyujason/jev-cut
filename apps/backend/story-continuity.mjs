@@ -1,6 +1,6 @@
 // Evidence about the current sequence, never a project-wide eligibility pool.
 export function windowFacts(shot,item){
-  if(!shot)return {description:item?.label||'',unknown:true};
+  if(!shot)return {description:item?.label||'',unknown:true,sourceId:item?.mediaId,sourceRange:item?.sourceFps>0?[item.sourceStart/item.sourceFps,item.sourceEnd/item.sourceFps]:undefined,people:[],actions:[]};
   const semantic=shot.semantic||{},start=item?item.sourceStart/item.sourceFps:shot.start,end=item?item.sourceEnd/item.sourceFps:shot.end;
   const actions=(semantic.actions||[]).filter(a=>Number.isFinite(a.start)&&Number.isFinite(a.end)&&a.start<end&&a.end>start).map(a=>({action:a.action,phase:a.phase,direction:a.direction,confidence:a.confidence,visibleFraction:+(Math.max(0,Math.min(end,a.end)-Math.max(start,a.start))/Math.max(.001,a.end-a.start)).toFixed(2),onsetInWindow:a.start>=start&&a.start<end,completionInWindow:a.end>start&&a.end<=end,peakInWindow:Number.isFinite(a.peak)&&a.peak>=start&&a.peak<end}));
   return {shotId:shot.id,episode:shot.episode,sceneId:shot.sceneId,sourceId:shot.sourceId,sourceRange:[start,end],description:shot.description,people:shot.characters||[],setting:semantic.setting,shotSize:semantic.shot_size,screenDirection:semantic.screen_direction,emotion:semantic.emotion,motifs:semantic.visual_motifs?.slice(0,3),actions,dialogueMeaning:semantic.dialogue_meaning_zh?.slice(0,90),uncertainties:semantic.uncertainties?.slice(0,2)};
@@ -20,8 +20,8 @@ export function storyContext(project,item,shots,goal=''){
   const unfinished=prev?.actions?.filter(a=>a.confidence>=.65&&!a.completionInWindow&&/跑|跃|挥|开火|射击|发射|引爆|抱起|拉住|转身/.test(a.action||''))||[];
   if(unfinished.length)nextNeeds.push({kind:'finish-action',query:'继续真实动作直至完成，或用方向可接的镜头呈现动作结果。',basis:unfinished.map(a=>a.action).join('；')});
   else if(prev&&attack(prev))nextNeeds.push({kind:'show-result',query:'呈现刚才攻击的命中、防御、敌人反应或被保护者的结果。',basis:prev.description});
-  if(reactionRun>=2)nextNeeds.push({kind:'advance-event',query:'拔枪、举枪开火、奔跑迎击、伸手拉住、抱起救援；选择可以推进当前事件的真实行动。',basis:`已经连续${reactionRun}镜为反应特写`});
-  if(!nextNeeds.length)nextNeeds.push({kind:before.length?'develop-event':'establish',query:before.length?'接续当前小事件，补动作对象、准备、结果或明确情绪回应。':'建立保护对象与威胁，音乐起势时进入真实行动。',basis:prev?.description||'尚未展示任何画面'});
+  if(reactionRun>=2)nextNeeds.push({kind:'advance-event',query:'选择主角实际执行的行动、行动结果或明确的人际回应，推进当前事件；武器与行为必须符合当前人物。',basis:`已经连续${reactionRun}镜为反应特写`});
+  if(!nextNeeds.length)nextNeeds.push({kind:before.length?'develop-event':'establish',query:before.length?'接续当前小事件，补动作对象、准备、结果或明确情绪回应。':'建立主角性格、当前处境与人物关系，随音乐起势进入真实行动。',basis:prev?.description||'尚未展示任何画面'});
   const recentDurations=before.slice(-4).map(i=>+(i.durationInFrames/project.metadata.fps).toFixed(2));
   return {history,reactionRun,sceneRun,previous:prev,milestones,nextNeeds:nextNeeds.slice(0,2),recentDurations,evidencePolicy:'milestones来自已选窗口的素材标注，是可见证据线索，不是自动成立的因果。nextNeeds是待补信息建议，只需选一项推进；不能捏造镜头之外的剧情。',instruction:'每2–4镜组成一个可读的小事件：对象/威胁→准备→行动→结果或反应。优先解决nextNeeds中的一项，再考虑新的主题相似画面。动作可在一镜完成，也可跨镜衔接。结合最近持镜时长与音乐句子制造快慢反差，不要持续等长。跨场景是省略或联想，不得凭人物相同声称真实空间连续。'};
 }
@@ -42,12 +42,10 @@ export function candidateRejections(shot,story,{repriseAllowed=false}={}){
 }
 
 export function carryWindow(project,item,previous,shots){
- const prev=previous.at(-1);if(!prev||prev.from+prev.durationInFrames!==item.from||previous.at(-2)?.mad?.shotId===prev.mad?.shotId)return null;
+ const prev=previous.at(-1);if(!prev||prev.from+prev.durationInFrames!==item.from)return null;
  if(prev.locked||prev.isLocked||(prev.effects||[]).length||(project.timeline.keyframes||[]).some(k=>k.itemId===prev.id)||(project.timeline.tracks||[]).some(t=>t.id===prev.trackId&&(t.locked||t.isLocked)))return null;
- if(prev.durationInFrames+item.durationInFrames>project.metadata.fps*4)return null;
  if((project.timeline.transitions||[]).some(t=>t.leftClipId===item.id||t.rightClipId===item.id))return null;
  const shot=shots.find(s=>s.id===prev.mad?.shotId);if(!shot||shot.semantic?.credits_or_logo)return null;
- if(!(shot.semantic?.actions||[]).some(a=>/跑|跃|跳|挥|开火|射击|发射|坠|落地|引爆|扣动|按下|拉住|抱起|转身|伸手|迈步|走向/.test(a.action||'')))return null;
  const start=prev.sourceEnd,needed=Math.ceil(item.durationInFrames*prev.sourceFps*(prev.speed||1)/project.metadata.fps-1e-9),end=start+needed;
  if(!(shot.safeRanges||[]).some(r=>r.startFrame<=start&&r.endFrame>=end+1)||(shot.repeatedBands||[]).some(r=>start/prev.sourceFps<r.end&&end/prev.sourceFps>r.start))return null;
  return {shotId:shot.id,visual:shot.description,continuationOf:prev.id,keep:false,item:{...item,label:prev.label,mediaId:prev.mediaId,src:prev.src,sourceStart:start,sourceEnd:end,sourceFps:prev.sourceFps,sourceDuration:prev.sourceDuration,speed:prev.speed, mad:{...item.mad,assetId:prev.mediaId,shotId:shot.id,occurrenceId:item.id,continuationOf:prev.id}}};
@@ -60,6 +58,6 @@ export function actionWindowScore(shot,start,end,{accentFraction=.5,continuityPr
     const peakFit=Number.isFinite(a.peak)&&a.peak>=start&&a.peak<end?1-Math.min(1,Math.abs((a.peak-start)/span-accentFraction)):0;
     actionFit=Math.max(actionFit,overlap*.35+peakFit*.8);
   }
-  const reverse=continuityPrevious&&shot.sceneId===continuityPrevious.sceneId&&shot.sourceId===continuityPrevious.sourceId&&start<continuityPrevious.sourceRange[1]-.05;
-  return actionFit-(reverse?.8:0);
+  // Source reversal is evidence for the final decision, not an automatic window penalty.
+  return actionFit;
 }

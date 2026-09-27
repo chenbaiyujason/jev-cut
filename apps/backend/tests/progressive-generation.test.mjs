@@ -60,13 +60,19 @@ test('append publishes new clips only after the existing picture and preserves t
  const f=await fixture(t);const old={id:'old',type:'video',trackId:'picture',from:0,durationInFrames:90,mediaId:'real',src:'/real.mp4',sourceStart:12,sourceEnd:84,mad:{shotId:'old-shot'}};
  const music={id:'music',type:'audio',trackId:'music',mediaId:'m',from:0,durationInFrames:180,sourceStart:0,sourceFps:30};
  f.setInitial({id:'mad-main',description:'原目标',metadata:{fps:30,width:960,height:540},timeline:{items:[old,music],tracks:[{id:'picture'},{id:'music'}],transitions:[],keyframes:[]}});
- f.deps.makePlan=async(_,__,o)=>{o.onSection(f.section,[0,1,2,3,4,5,6]);return {};};
+ let requests=0;
+ f.deps.makePlan=async(m,__,o)=>{requests++;assert.equal(o.duration,3);assert.equal(m.duration,3);assert.equal(o.continuation,true);o.onSection({...f.section,to_beat:3,end:3},[0,1,2,3]);return {};};
  const choose=f.deps.choose;f.deps.choose=async args=>{assert.ok(args.item.from>=90);assert.equal(args.goal,'原目标');return choose(args);};
  const job=await startGeneration({mode:'append',musicId:'m',baseRevision:1},f.library,f.deps);
+ assert.equal(job.pendingClip.from,90);assert.deepEqual(job.planningRange,{from:3,to:6});
  while(generationStatus(job.id).status==='running')await waitGeneration(job.id,-1,{timeoutMs:10}).then(()=>new Promise(r=>setTimeout(r,1)));
  const final=generationStatus(job.id);assert.equal(final.status,'complete',final.error);
  assert.deepEqual(final.state.project.timeline.items.find(i=>i.id==='old'),old);assert.deepEqual(final.state.project.timeline.items.find(i=>i.id==='music'),music);
  assert.ok(final.state.project.timeline.items.filter(i=>i.type==='video'&&i.id!=='old').every(i=>i.from>=90));
+ f.setInitial({...final.state.project,timeline:{...final.state.project.timeline,items:[old,music]}});
+ const again=await startGeneration({mode:'append',musicId:'m',baseRevision:final.state.revision},f.library,f.deps);
+ while(generationStatus(again.id).status==='running')await new Promise(r=>setTimeout(r,2));
+ const reused=generationStatus(again.id);assert.equal(reused.status,'complete',reused.error);assert.equal(requests,1);assert.equal(reused.planningSource,'buffer');
 });
 
 test('native-project handoff preserves music source trim, timeline offset, speed and volume',async t=>{

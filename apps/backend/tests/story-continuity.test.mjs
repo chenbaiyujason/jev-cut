@@ -30,5 +30,5 @@ test('carrying an action uses fresh contiguous frames and never crosses a safe b
  const prev={id:'p',from:0,durationInFrames:15,sourceStart:24,sourceEnd:36,sourceFps:24,mediaId:'ep',mad:{shotId:'s'}},item={id:'n',from:15,durationInFrames:15},project={metadata:{fps:30},timeline:{transitions:[]}},shot={id:'s',description:'挥枪',semantic:{actions:[{action:'挥枪',start:1,end:2,confidence:.9}]},safeRanges:[{startFrame:20,endFrame:60}]};
  const c=carryWindow(project,item,[prev],[shot]);assert.equal(c.item.sourceStart,36);assert.equal(c.item.sourceEnd,48);assert.equal(c.item.id,'n');
  assert.equal(carryWindow(project,item,[prev],[{...shot,safeRanges:[{startFrame:20,endFrame:44}]}]),null);
- assert.equal(carryWindow(project,item,[prev],[{...shot,semantic:{}}]),null);
+ assert.equal(carryWindow(project,item,[prev],[{...shot,semantic:{}}]).item.sourceStart,36);
 });

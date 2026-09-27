@@ -67,7 +67,7 @@ export function JevProjectMenu() {
         if (!abort.signal.aborted) setError(e instanceof Error ? e.message : '版本读取失败')
       })
     return () => abort.abort()
-  }, [])
+  }, [open])
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>

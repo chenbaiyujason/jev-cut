@@ -7,6 +7,11 @@ import { Sparkles } from 'lucide-react'
 import { type StudioProject } from './api'
 import { initializeMadStudio, startMadBridge, useMadBridge, madMigration } from './bridge'
 import { EditPanel } from './edit-panel'
+import { JevMatchPanel } from './jev-match-panel'
+import { JevMatchTool } from './jev-match-tool'
+import { useSelectionStore } from '@/shared/state/selection'
+import { useItemsStore } from '@/features/timeline/stores/items-store'
+import { useProjectStore } from '@/features/projects/stores/project-store'
 import { JevProjectMenu, JevToolbar } from './jev-chrome'
 import { GenerationPlaceholder } from './generation-placeholder'
 import './mad-studio.css'
@@ -15,6 +20,13 @@ function ConnectedStudio({ data }: { data: StudioProject }) {
   useEffect(() => startMadBridge(), [])
   const applying = useMadBridge((s) => s.applying)
   const pending = useMadBridge((s) => s.pending)
+  const activeInspectorTab = useMadBridge((s) => s.activeInspectorTab)
+  const matchResult = useMadBridge((s) => s.lastJevMatchResult)
+  const selectedIds = useSelectionStore((s) => s.selectedItemIds)
+  const items = useItemsStore((s) => s.items)
+  const placeholder = items.find((item) => selectedIds.includes(item.id) && item.type === 'controller' && item.jevMatchPlaceholder)
+  const placeholderId = placeholder?.id
+  const fps = useProjectStore((s) => s.currentProject?.metadata.fps) || 30
   const [active, setActive] = useState(true)
   useEffect(() => {
     const editor = useEditorStore.getState()
@@ -26,6 +38,17 @@ function ConnectedStudio({ data }: { data: StudioProject }) {
     setActive(value)
     useEditorStore.getState().setRightSidebarOpen(true)
   }, [])
+  const openEdit = useCallback(() => {
+    useMadBridge.setState({ activeInspectorTab: 'edit' })
+    activate(true)
+  }, [activate])
+  const openMatch = useCallback(() => {
+    useMadBridge.setState({ activeInspectorTab: 'match' })
+    activate(true)
+  }, [activate])
+  useEffect(() => {
+    if (placeholderId) openMatch()
+  }, [placeholderId, openMatch])
   useEffect(() => {
     if (!applying) return
     const block = (e: KeyboardEvent) => {
@@ -43,10 +66,23 @@ function ConnectedStudio({ data }: { data: StudioProject }) {
       busy: pending,
       setActive: activate,
       projectControls: <JevProjectMenu />,
-      toolbarActions: <JevToolbar active={active} onOpen={() => activate(true)} />,
-      inspector: <EditPanel />,
+      toolbarActions: <JevToolbar active={active && activeInspectorTab === 'edit'} onOpen={openEdit} />,
+      timelineToolbarActions: <JevMatchTool onOpen={openMatch} />,
+      inspector: <>
+        <div className="jev-inspector-content" hidden={activeInspectorTab !== 'edit'}><EditPanel /></div>
+        <div className="jev-inspector-content" hidden={activeInspectorTab !== 'match'}>
+          <JevMatchPanel placeholder={placeholder?.type === 'controller' ? placeholder : null} result={matchResult && selectedIds.includes(matchResult.placeholderId) ? matchResult : null} fps={fps} />
+        </div>
+      </>,
+      onInspectorSelect: openEdit,
+      extraTabs: [{
+        id: 'match',
+        label: 'jev匹配',
+        active: activeInspectorTab === 'match',
+        onSelect: openMatch,
+      }],
     }),
-    [active, pending, activate],
+    [active, activeInspectorTab, pending, activate, openEdit, openMatch, placeholder, matchResult, selectedIds, fps],
   )
   // Boot metadata must never change: live updates use stores, not reopening Editor.
   const project = data.project

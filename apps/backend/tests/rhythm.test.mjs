@@ -31,6 +31,11 @@ test('streamed short opening and later sections keep both boundaries without bla
   assert.equal(later[0].start,1);assert.equal(later.at(-1).end,2);
   for(let i=1;i<later.length;i++)assert.equal(later[i].start,later[i-1].end);
 });
+test('opening structural accents cannot insert boundaries into a later streamed section',()=>{
+ const slots=[{start:7.2,end:8,accent:7.4,energy:.8},{start:8,end:9,accent:8.4,energy:.8}];
+ const result=shapeAroundAccents(slots,[{time:2.36,policy:'breathe'},{time:4.44,policy:'cut'},{time:15.56,policy:'carry'}],.42);
+ assert.equal(result[0].start,7.2);assert.equal(result.at(-1).end,9);assert.ok(result.every(s=>s.start>=7.2&&s.end<=9));
+});
 test('accent shaping supports both cut-on-hit and action-inside-shot with anticipation',()=>{
   const slots=Array.from({length:12},(_,i)=>({start:i*.25,end:(i+1)*.25,accent:i*.25,energy:.7}));
   const shaped=shapeAroundAccents(slots,[{time:.55,policy:'breathe',openingClimax:true},{time:2.05,policy:'carry'}],.5);

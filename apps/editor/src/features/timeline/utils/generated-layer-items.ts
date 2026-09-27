@@ -16,7 +16,7 @@ export const DEFAULT_GENERATED_LAYER_DURATION_SECONDS = 60
 
 export interface TimelineTemplateDragData {
   type: 'timeline-template'
-  itemType: 'text' | 'shape' | 'adjustment'
+  itemType: 'text' | 'shape' | 'adjustment' | 'controller'
   label: string
   textStylePresetId?: TextStylePresetId
   shapeType?: ShapeType
@@ -44,7 +44,8 @@ export function isTimelineTemplateDragData(value: unknown): value is TimelineTem
   if (
     candidate.itemType !== 'text' &&
     candidate.itemType !== 'shape' &&
-    candidate.itemType !== 'adjustment'
+    candidate.itemType !== 'adjustment' &&
+    candidate.itemType !== 'controller'
   )
     return false
   if (typeof candidate.label !== 'string' || candidate.label.trim().length === 0) return false
@@ -280,8 +281,16 @@ export function createDefaultControllerItem(params: VisualLayerPlacement): Contr
 export function createTimelineTemplateItem(params: {
   template: TimelineTemplateDragData
   placement: VisualLayerPlacement
-}): TextItem | ShapeItem | AdjustmentItem {
+}): TextItem | ShapeItem | AdjustmentItem | ControllerItem {
   const { template, placement } = params
+
+  if (template.itemType === 'controller') {
+    return {
+      ...createDefaultControllerItem(placement),
+      label: template.label,
+      jevMatchPlaceholder: true,
+    }
+  }
 
   if (template.itemType === 'text') {
     return createTextTemplateItem({

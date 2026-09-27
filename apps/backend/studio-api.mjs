@@ -12,13 +12,16 @@ import {globalReport} from './global-report.mjs';
 import {startEditJob,getEditJob,cancelEditJob,waitEditJob} from './director-edit.mjs';
 import {analyzeMusicIntent,readMusicIntent} from './music-intent.mjs';
 import {startGeneration,generationStatus,cancelGeneration,waitGeneration} from './progressive-generation.mjs';
-import {visionSelectionEnabled,updateDirectorSettings} from './decision-settings.mjs';
+import {visionSelectionEnabled,updateDirectorSettings,readDirectorSettings} from './decision-settings.mjs';
 import {productionMenu} from './production-menu.mjs';
+import {automaticExpressionPolicy} from './editing-policy.mjs';
+import {cachedMusicEvents} from './rhythm.mjs';
+import {candidatePolicyVersion} from './candidate-selection.mjs';
 
 export async function handleStudio(req,res,url,{library,readJson,json}){
   if(!url.pathname.startsWith('/api/studio/'))return false;
   const route=url.pathname.slice('/api/studio/'.length),send=data=>{json(res,data);return true;};
-  if(req.method==='GET'&&route==='generation/capabilities')return send({progressive:true,version:2,cancelKeepsClips:true,modes:['new','append','rebuild'],trimmedMusic:true});
+  if(req.method==='GET'&&route==='generation/capabilities')return send({progressive:true,version:2,cancelKeepsClips:true,modes:['new','append','rebuild'],trimmedMusic:true,automaticExpression:automaticExpressionPolicy,candidatePolicy:candidatePolicyVersion});
   if(req.method==='GET'&&route.startsWith('generation/jobs/')){
     // Publication already uses an atomic revision guard. Comparing an earlier
     // job snapshot with a later disk read here would cancel our own next clip.
@@ -65,6 +68,47 @@ export async function handleStudio(req,res,url,{library,readJson,json}){
     const saved=await mutateStudio(library,body.baseRevision,()=>({...project,id:'mad-main'}),'load version '+body.id);
     await writeFile(activeFile,JSON.stringify({id:body.id,musicId:project.timeline.items.find(i=>i.trackId==='music')?.mediaId}));
     await writeFile(path.join(studioStore,'director','latest.json'),JSON.stringify({available:true,revision:saved.revision,theme:plan.theme,plan,summary,trace,exportUrl:'/studio-assets/director/'+body.id+'/homura-mad.mp4'}));return send(saved);
+  }
+  if(req.method==='POST'&&route==='jev-match'){
+    const started=performance.now(),state=await studioState(library);
+    if(body.baseRevision!==state.revision){const e=Error('时间轴已有新修改，请重新匹配');e.status=409;throw e;}
+    const placeholder=state.project.timeline.items.find(i=>i.id===body.placeholderId&&i.type==='controller'&&i.jevMatchPlaceholder);
+    if(!placeholder)throw Error('请先拖入jev匹配占位节点');
+    const fps=state.project.metadata.fps,tracks=state.project.timeline.tracks||[];
+    const failMatch=message=>{const e=Error(message);e.status=422;throw e;};
+    const track=tracks.find(t=>t.id===placeholder.trackId);
+    if(!track||placeholder.locked||placeholder.isLocked||track.locked||track.isLocked)failMatch('占位节点或轨道已锁定，请先解锁');
+    const musicItem=state.project.timeline.items.find(i=>i.type==='audio'&&i.trackId==='music'&&i.from<=placeholder.from&&i.from+i.durationInFrames>placeholder.from);
+    if(!musicItem)failMatch('请将匹配节点放在主音乐实际覆盖的范围内');
+    const music=library.music.find(m=>m.id===musicItem.mediaId);if(!music)throw Error('主音乐素材不可用');
+    if(musicItem.isReversed)failMatch('单镜匹配暂不支持倒放主音乐');
+    const neighbors=state.project.timeline.items.filter(i=>i.id!==placeholder.id&&i.trackId===placeholder.trackId);
+    if(neighbors.some(i=>i.from<=placeholder.from&&i.from+i.durationInFrames>placeholder.from))failMatch('占位节点起点与其他素材重叠，请先移动到空位');
+    if((state.project.timeline.transitions||[]).some(t=>t.leftClipId===placeholder.id||t.rightClipId===placeholder.id))failMatch('请先移除占位节点上的转场，再匹配素材');
+    const trackEnd=Math.min(musicItem.from+musicItem.durationInFrames,...neighbors.filter(i=>i.from>placeholder.from).map(i=>i.from));
+    const maxFrames=Math.min(placeholder.durationInFrames,trackEnd-placeholder.from);
+    if(maxFrames<Math.ceil(.38*fps))failMatch('可用区间不足 0.38 秒，请延长占位节点或换一个位置');
+    const offset=(musicItem.sourceStart||0)/(musicItem.sourceFps||fps),rate=musicItem.speed||1,currentAudio=offset+Math.max(0,placeholder.from-musicItem.from)/fps*rate;
+    const events=await cachedMusicEvents(music),options=new Map();
+    const add=(sourceTime,reason,priority)=>{const frames=Math.round((sourceTime-currentAudio)/rate*fps);if(frames<Math.ceil(.38*fps)||frames>maxFrames)return;const old=options.get(frames);if(!old||old.priority<priority)options.set(frames,{frames,reason,priority});};
+    for(const beat of music.beats||[])add(typeof beat==='number'?beat:beat.time,'普通拍点，可让动作继续',1);
+    for(const accent of events.primaryAccents||[])add(accent.time,'音乐主重音',3);
+    for(const accent of events.structuralAccents||[])add(accent.time,'乐句变化或重入点',4);
+    for(const e of events.events||[])if((e.strength||e.salience||0)>=.72)add(e.time,e.band==='beat-grid-estimate'?'普通拍点':'强拍',2);
+    const selectedEnds=[...options.values()].sort((a,b)=>b.priority-a.priority||Math.abs(a.frames-fps*.92)-Math.abs(b.frames-fps*.92)).slice(0,3);
+    if(!selectedEnds.some(o=>o.frames===maxFrames))selectedEnds.push({frames:maxFrames,reason:'保持可用区间，让动作完整结束',priority:0});
+    const durationOptions=selectedEnds.sort((a,b)=>a.frames-b.frames);
+    const width=state.project.metadata.width,height=state.project.metadata.height;
+    const item={id:placeholder.id,trackId:placeholder.trackId,from:placeholder.from,durationInFrames:maxFrames,type:'video',label:'jev匹配待选',mediaId:'',src:'',sourceStart:0,sourceEnd:0,sourceFps:fps,sourceDuration:0,speed:1,volume:-60,embeddedAudioMuted:true,sourceWidth:width,sourceHeight:height,transform:{x:0,y:0,width,height,rotation:0,opacity:1,aspectRatioLocked:true}};
+    const project={...state.project,duration:Math.max(state.project.duration,trackEnd/fps),timeline:{...state.project.timeline,items:state.project.timeline.items.map(i=>i.id===placeholder.id?item:i)}};
+    const [resources,settings]=await Promise.all([liveDirectorResources(),readDirectorSettings()]);
+    const goal=String(settings[state.project.name]?.goal??state.project.description??''),prompt=String(body.prompt||'').trim().slice(0,500);
+    const result=await chooseGlobalShot({project,item,library,resources,goal,prompt,intent:'当前音乐位置的单镜匹配：看当前动作阶段、人物关系、前后镜头和最近重音，选择完整且接得上的窗口。',ask:q=>decide(q,path.join(studioStore,'jev-match',placeholder.id)),allowKeep:false,manageAudio:true,reserveFrames:1,visionEnabled:body.visionEnabled===true,adaptiveVisual:false,durationOptions});
+    const chosen=result.selected.item;
+    if(chosen.id!==placeholder.id||chosen.from!==placeholder.from||chosen.durationInFrames>maxFrames||!chosen.mediaId)failMatch('匹配结果超出占位区间，未写入时间轴');
+    const nextProject={...state.project,timeline:{...state.project.timeline,items:state.project.timeline.items.map(i=>i.id===placeholder.id?{...chosen,label:chosen.label.replace(/^global · /,'Jev匹配 · ')}:i),keyframes:(state.project.timeline.keyframes||[]).filter(k=>k.itemId!==placeholder.id)}};
+    const saved=await mutateStudio(library,state.revision,()=>nextProject,'jev full-corpus match');
+    return send({applied:true,placeholderId:placeholder.id,item:{from:chosen.from,durationInFrames:chosen.durationInFrames,label:chosen.label},visual:result.selected.visual,durationSeconds:chosen.durationInFrames/fps,remainingSeconds:(placeholder.durationInFrames-chosen.durationInFrames)/fps,beatReason:durationOptions.find(o=>o.frames===chosen.durationInFrames)?.reason||'Winnow按动作长度裁剪',scope:result.trace.rounds.at(-1)?.scope||{eligible:0,episodes:[]},traceUrl:result.traceUrl,matchId:result.trace.id,state:saved,timing:{prepareMs:result.timing.prepareMs,modelMs:result.timing.modelMs,totalMs:performance.now()-started}});
   }
   if(req.method==='POST'&&['director/change','director/preview-change'].includes(route)){
     const started=performance.now(),state=await studioState(library),apply=route==='director/change';

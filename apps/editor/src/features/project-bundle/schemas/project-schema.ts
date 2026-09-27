@@ -541,6 +541,7 @@ const timelineItemSchema = z
     transform: transformSchema.optional(),
     transformParent: transformParentSchema.optional(),
     controllerKind: z.literal('null').optional(),
+    jevMatchPlaceholder: z.boolean().optional(),
     crop: cropSchema.optional(),
     // Audio properties
     volume: z.number().min(-60).max(12).optional(),
