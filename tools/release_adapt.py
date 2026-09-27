@@ -23,6 +23,9 @@ def adapt(dest, data):
         text=text.replace('expectedEpisodes:11','expectedEpisodes:expectedSourceCount(library)')
         text=text.replace('全11集','全量素材').replace('/11 集','/全部素材').replace('完整11集','完整素材库')
     if dest=='apps/backend/planning.mjs': text=text.replace('完整11集','完整素材库')
+    if dest=='apps/backend/production-menu.mjs':
+        text,count=re.subn(r'^const defaults=\[.*?\];$', 'const defaults=[];',text, count=1, flags=re.M)
+        if count!=1: raise ValueError('production menu defaults changed; review adaptation')
     if dest=='apps/backend/catalog.mjs': text=text.replace('这是小圆剧场版总集篇 TV Edition 第${source.episode}集的一小段','这是用户素材第${source.episode}项的一小段')
     if dest=='apps/backend/studio-api.mjs':
         text=text.replace("||'晓美焰，帅气、轮回、忧郁'", "||''")

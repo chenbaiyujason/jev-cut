@@ -8,6 +8,7 @@ import { type StudioProject } from './api'
 import { initializeMadStudio, startMadBridge, useMadBridge, madMigration } from './bridge'
 import { EditPanel } from './edit-panel'
 import { JevProjectMenu, JevToolbar } from './jev-chrome'
+import { GenerationPlaceholder } from './generation-placeholder'
 import './mad-studio.css'
 
 function ConnectedStudio({ data }: { data: StudioProject }) {
@@ -58,6 +59,7 @@ function ConnectedStudio({ data }: { data: StudioProject }) {
   return (
     <EditorExtensionContext.Provider value={extension}>
       <div className="mad-studio-shell">
+        <GenerationPlaceholder />
         <div
           className="mad-editor-host"
           aria-busy={applying}

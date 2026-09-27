@@ -5,6 +5,21 @@ from concurrent.futures import ThreadPoolExecutor
 import cv2
 import numpy as np
 from PIL import Image
+from collections import OrderedDict
+from threading import local
+cv2.setNumThreads(1)
+local_state=local()
+
+def evidence_capture(video):
+    # OpenCV captures are private to each executor thread, never shared concurrently.
+    if not hasattr(local_state,'captures'):local_state.captures=OrderedDict()
+    stamp=(video,Path(video).stat().st_mtime_ns)
+    captures=local_state.captures
+    cap=captures.pop(stamp,None)
+    if cap is None:cap=cv2.VideoCapture(video)
+    captures[stamp]=cap
+    while len(captures)>3:captures.popitem(last=False)[1].release()
+    return cap
 root=Path(__file__).resolve().parents[1]
 cache=root/'.local/director-motion-v1';cache.mkdir(exist_ok=True)
 from refine_safe_ranges import refine
@@ -14,13 +29,14 @@ def boundary_arrays(episode):
     folder=root/f'.local/catalog-v2/episode-{episode:02d}'
     return np.load(folder/'frame-times.npy'),np.load(folder/'transition-probabilities.npy')
 def prepare(task):
+    if task.get('kind')=='warmup':return
     if task.get('kind')=='safety':
         pts,probabilities=boundary_arrays(task['source']['episode'])
         refine(task['source'],task['shot'],pts,probabilities)
         return
     file=Path(task['output']) if task.get('output') else cache/(task['id']+'.json')
     if file.exists():return
-    cap=cv2.VideoCapture(task['video'])
+    cap=evidence_capture(task['video']) if task.get('frames') else cv2.VideoCapture(task['video'])
     try:
         if task.get('frames'):
             sheet=Image.new('RGB',(960,180))
@@ -40,14 +56,17 @@ def prepare(task):
                 delta=[0]+[round(float(np.abs(b-a).mean()),3) for a,b in zip(gray,gray[1:])]
                 ranges.append({**r,'delta':delta,'brightness':[round(float(x.mean()),2) for x in gray],'detail':[round(float(x.std()),2) for x in gray]})
             tmp=file.with_suffix('.'+uuid.uuid4().hex+'.tmp.json');tmp.write_text(json.dumps({'id':task['id'],'ranges':ranges}),encoding='utf-8');tmp.replace(file)
-    finally:cap.release()
+    finally:
+        if not task.get('frames'):cap.release()
 if len(sys.argv)>1 and sys.argv[1]=='--worker':
-    for line in sys.stdin:
-        try:
-            request=json.loads(line)
-            with ThreadPoolExecutor(max_workers=4) as executor:list(executor.map(prepare,request['tasks']))
-            print(json.dumps({'id':request['id'],'ok':True}),flush=True)
-        except Exception as e:print(json.dumps({'id':request.get('id'),'error':str(e)}),flush=True)
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for line in sys.stdin:
+            request={}
+            try:
+                request=json.loads(line)
+                list(executor.map(prepare,request['tasks']))
+                print(json.dumps({'id':request['id'],'ok':True}),flush=True)
+            except Exception as e:print(json.dumps({'id':request.get('id'),'error':str(e)}),flush=True)
 else:
     request=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
     with ThreadPoolExecutor(max_workers=4) as executor:list(executor.map(prepare,request['tasks']))

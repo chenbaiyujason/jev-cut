@@ -3,6 +3,7 @@ import path from 'node:path';
 import {compileTechnique} from './studio-techniques.mjs';
 import {fpsOf} from './studio-project.mjs';
 import {globalResources} from './global-evidence.mjs';
+import {actionWindowScore} from './story-continuity.mjs';
 let resources;
 export async function liveDirectorResources(root){
   return globalResources();
@@ -35,7 +36,7 @@ export function buildLiveReplacements({project,row,library,shots,motion,manageAu
         if(blank>.35||['rescue','retry'].includes(row.role)&&movement<.75)continue;
         const a=(range.startFrame+offset)/sfps,b=(range.startFrame+offset+needed)/sfps;
         if((shot.repeatedBands||[]).some(r=>a<r.end&&b>r.start))continue;
-        const score=Math.min(movement,15)*.05-blank*3;if(best&&score<=best.score)continue;
+        const score=Math.min(movement,15)*.025-blank*3+actionWindowScore(shot,a,b,{accentFraction:row.accentFraction??.5,continuityPrevious:row.continuityPrevious});if(best&&score<=best.score)continue;
         const next={...item,label:`${row.role} · EP${source.episode} · ${shot.description}`,mediaId:source.id,src:`/mad-media/${source.id}/edit-preview-v2.mp4`,sourceStart:range.startFrame+offset,sourceEnd:range.startFrame+offset+needed,sourceFps:sfps,sourceDuration:Math.floor(source.duration*sfps),mad:{...item.mad,assetId:source.id,shotId:shot.id,occurrenceId:item.id}};
         const patched={...project,timeline:{...project.timeline,items:project.timeline.items.map(i=>i.id===item.id?next:i)}};
         let valid=true;for(const t of transitions){try{compileTechnique({technique:'transition',requestId:'live-edge',leftOccurrenceId:t.leftClipId,rightOccurrenceId:t.rightClipId,durationInFrames:t.durationInFrames,presentation:t.presentation,alignment:t.alignment??.5},{...patched,timeline:{...patched.timeline,transitions:patched.timeline.transitions.filter(x=>x.id!==t.id)},madCatalog:catalog});}catch{valid=false;break;}}

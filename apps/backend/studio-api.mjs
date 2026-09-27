@@ -11,16 +11,19 @@ import {beginEditEpoch} from './edit-epochs.mjs';
 import {globalReport} from './global-report.mjs';
 import {startEditJob,getEditJob,cancelEditJob,waitEditJob} from './director-edit.mjs';
 import {analyzeMusicIntent,readMusicIntent} from './music-intent.mjs';
-import {startGeneration,generationStatus,cancelGeneration} from './progressive-generation.mjs';
+import {startGeneration,generationStatus,cancelGeneration,waitGeneration} from './progressive-generation.mjs';
+import {visionSelectionEnabled,updateDirectorSettings} from './decision-settings.mjs';
+import {productionMenu} from './production-menu.mjs';
 
 export async function handleStudio(req,res,url,{library,readJson,json}){
   if(!url.pathname.startsWith('/api/studio/'))return false;
   const route=url.pathname.slice('/api/studio/'.length),send=data=>{json(res,data);return true;};
-  if(req.method==='GET'&&route==='generation/capabilities')return send({progressive:true,version:1,cancelKeepsClips:true});
+  if(req.method==='GET'&&route==='generation/capabilities')return send({progressive:true,version:2,cancelKeepsClips:true,modes:['new','append','rebuild'],trimmedMusic:true});
   if(req.method==='GET'&&route.startsWith('generation/jobs/')){
     // Publication already uses an atomic revision guard. Comparing an earlier
     // job snapshot with a later disk read here would cancel our own next clip.
-    return send(generationStatus(route.split('/').at(-1),Number(url.searchParams.get('after')??-1)));
+    const id=route.split('/').at(-1),after=Number(url.searchParams.get('after')??-1);
+    return send(url.searchParams.get('wait')==='1'?await waitGeneration(id,after,{afterEvent:url.searchParams.has('afterEvent')?Number(url.searchParams.get('afterEvent')):undefined}):generationStatus(id,after));
   }
   if(req.method==='GET'&&route==='project')return send(await studioState(library));
   if(req.method==='GET'&&route==='catalog')return send(await studioCatalog(library));
@@ -31,7 +34,7 @@ export async function handleStudio(req,res,url,{library,readJson,json}){
   if(req.method==='GET'&&route.startsWith('director/jobs/'))return send(url.searchParams.get('wait')==='1'?await waitEditJob(route.split('/').at(-1)):getEditJob(route.split('/').at(-1)));
   if(req.method==='GET'&&route==='director/settings'){
     let saved={};try{saved=JSON.parse(await readFile(path.join(studioStore,'director','settings.json'),'utf8'));}catch{}
-    const state=await studioState(library);return send({goal:saved[state.project.name]?.goal||'',voiceSeparation:{ready:false,reason:'尚未配置对白分离模型；不会使用混合原声冒充纯人声'},versions:[]});
+    const state=await studioState(library);return send({goal:saved[state.project.name]?.goal??state.project.description??'',visionEnabled:await visionSelectionEnabled(),voiceSeparation:{ready:false,reason:'尚未配置对白分离模型；不会使用混合原声冒充纯人声'},versions:await productionMenu()});
   }
   if(req.method==='GET'&&route==='director/trace'){
     try{return send(JSON.parse(await readFile(path.join(studioStore,'director','latest.json'),'utf8')));}catch(e){if(e.code==='ENOENT')return send({available:false});throw e;}
@@ -51,13 +54,16 @@ export async function handleStudio(req,res,url,{library,readJson,json}){
   if(req.method==='POST'&&route==='director/edit')return send(await startEditJob(body,library));
   if(req.method==='POST'&&route==='director/cancel')return send(cancelEditJob(body.id));
   if(req.method==='PUT'&&route==='director/settings'){
-    const state=await studioState(library);let saved={};try{saved=JSON.parse(await readFile(path.join(studioStore,'director','settings.json'),'utf8'));}catch{}
-    saved[state.project.name]={goal:String(body.goal||'').slice(0,1000)};await mkdir(path.join(studioStore,'director'),{recursive:true});await writeFile(path.join(studioStore,'director','settings.json'),JSON.stringify(saved,null,2));return send(saved[state.project.name]);
+    const state=await studioState(library);return send(await updateDirectorSettings(state.project.name,body));
   }
   if(req.method==='POST'&&route==='director/load-version'){
-    if(!['homura-20s','redheels-homura','wings-homura'].includes(body.id))throw Error('无效版本');
+    if(!(await productionMenu()).some(v=>v.id===body.id))throw Error('无效版本');
+    const current=await studioState(library);if(current.revision!==body.baseRevision){const e=Error('工程已有新修改，请重试');e.status=409;throw e;}
+    const activeFile=path.join(studioStore,'director','active-production.json');
+    try{const active=JSON.parse(await readFile(activeFile,'utf8'));if((await productionMenu()).some(v=>v.id===active.id)&&current.project.timeline.items.some(i=>i.trackId==='music'&&i.mediaId===active.musicId))await writeFile(path.join(root,'.local/director-productions',active.id,'project.json'),JSON.stringify(current.project,null,2));}catch(e){if(e.code!=='ENOENT')throw e;}
     const folder=path.join(root,'.local/director-productions',body.id),project=JSON.parse(await readFile(path.join(folder,'project.json'),'utf8')),plan=JSON.parse(await readFile(path.join(folder,'plan.json'),'utf8')),summary=JSON.parse(await readFile(path.join(folder,'summary.json'),'utf8')),trace=JSON.parse(await readFile(path.join(folder,'trace.json'),'utf8'));
     const saved=await mutateStudio(library,body.baseRevision,()=>({...project,id:'mad-main'}),'load version '+body.id);
+    await writeFile(activeFile,JSON.stringify({id:body.id,musicId:project.timeline.items.find(i=>i.trackId==='music')?.mediaId}));
     await writeFile(path.join(studioStore,'director','latest.json'),JSON.stringify({available:true,revision:saved.revision,theme:plan.theme,plan,summary,trace,exportUrl:'/studio-assets/director/'+body.id+'/homura-mad.mp4'}));return send(saved);
   }
   if(req.method==='POST'&&['director/change','director/preview-change'].includes(route)){

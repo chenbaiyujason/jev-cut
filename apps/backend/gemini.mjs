@@ -56,8 +56,8 @@ export async function understand(parts,{schema,maxTokens=8192,cacheKey,thinkingL
   return record;
 }
 export async function videoPart(file,fps=4){return {inlineData:{mimeType:'video/mp4',data:(await readFile(file)).toString('base64')},videoMetadata:{fps}};}
-export async function embed(parts,{taskType='RETRIEVAL_DOCUMENT'}={}){
-  const config=await configuration(),model=config.GEMINI_EMBEDDING_MODEL||'gemini-embedding-2';
+export async function embed(parts,{taskType='RETRIEVAL_DOCUMENT',model}={}){
+  const config=await configuration();model??=config.GEMINI_EMBEDDING_MODEL||'gemini-embedding-2';
   const {data,metrics}=await geminiRequest(`models/${model}:embedContent`,{model:`models/${model}`,content:{parts},taskType,outputDimensionality:768},{timeoutMs:90000});
   const vector=data.embedding?.values;if(!Array.isArray(vector)||vector.length!==768||vector.some(x=>!Number.isFinite(x)))throw Error('Embedding 返回无效向量');
   const norm=Math.hypot(...vector);return {vector:vector.map(x=>x/Math.max(norm,1e-12)),metrics,model};

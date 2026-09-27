@@ -28,4 +28,13 @@ class SyncTests(unittest.TestCase):
     def test_owned_files_not_managed(self):
         with tempfile.TemporaryDirectory(prefix='jev-sync-test-') as folder:
             root=Path(folder);(root/'README.md').write_text('owned');self.assertEqual(sync.changes({}, {}, root),([],[],[]));self.assertEqual((root/'README.md').read_text(),'owned')
+    def test_release_menu_does_not_advertise_private_demo_projects(self):
+        from release_adapt import adapt
+        source=b"const defaults=[{id:'private-demo',name:'Demo'}];\nexport async function productionMenu(){return defaults;}\n"
+        exported=adapt('apps/backend/production-menu.mjs',source).decode()
+        self.assertIn('const defaults=[];',exported)
+        self.assertNotIn('private-demo',exported)
+        self.assertIn('return defaults;',exported)
+        with self.assertRaisesRegex(ValueError,'menu defaults changed'):
+            adapt('apps/backend/production-menu.mjs',b'const renamed=[];')
 if __name__=='__main__':unittest.main()

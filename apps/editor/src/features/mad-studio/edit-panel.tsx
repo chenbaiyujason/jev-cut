@@ -24,6 +24,7 @@ import { useMarkersStore } from '@/features/timeline/stores/markers-store'
 import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { useProjectStore } from '@/features/projects/stores/project-store'
 import { studioRequest } from './api'
+import { ProjectActions } from './project-actions'
 import {
   runScopedDirectorEdit,
   useMadBridge,
@@ -33,6 +34,7 @@ import {
 
 type Settings = {
   goal: string
+  visionEnabled: boolean
   versions: Array<{ id: string; name: string }>
   voiceSeparation: { ready: boolean; reason: string }
 }
@@ -54,6 +56,7 @@ export function EditPanel() {
   const [recordsOpen, setRecordsOpen] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [savingVision, setSavingVision] = useState(false)
   const mounted = useRef(true)
   const selectedIds = useSelectionStore((s) => s.selectedItemIds)
   const inPoint = useMarkersStore((s) => s.inPoint)
@@ -167,11 +170,11 @@ export function EditPanel() {
           : resolvedScope === 'intersection'
             ? '已选 ' + chosen.length + ' 个镜头 ∩ ' + rangeText
             : rangeText
-  const busy = pending || loading
+  const busy = pending || loading || savingVision
   return (
     <section className="jev-edit-panel jev-controls" aria-label="jev剪辑编辑面板">
       <div className="jev-panel-scroll">
-        <details className="jev-goal">
+        <details className="jev-goal" open>
           <summary>
             <span className="jev-label">全片目标</span>
             <span className="jev-goal-text">{goal || '设置创作目标'}</span>
@@ -191,6 +194,7 @@ export function EditPanel() {
               }).catch(() => setError('目标保存失败，请重试'))
             }}
           />
+          <ProjectActions goal={goal} />
         </details>
         <label className="jev-request">
           <span className="jev-label">本次想怎么改</span>
@@ -320,6 +324,26 @@ export function EditPanel() {
               </label>
             ))}
           </div>
+          <label className="jev-hint">
+            <input
+              type="checkbox"
+              checked={settings?.visionEnabled ?? false}
+              disabled={busy || !settings}
+              onChange={(e) => {
+                setSavingVision(true)
+                setError('')
+                void studioRequest<{ visionEnabled: boolean }>('studio/director/settings', {
+                  method: 'PUT',
+                  body: JSON.stringify({ visionEnabled: e.target.checked }),
+                })
+                  .then((value) => setSettings((s) => s ? { ...s, visionEnabled: value.visionEnabled } : s))
+                  .catch((e: unknown) => setError(e instanceof Error ? e.message : '设置保存失败'))
+                  .finally(() => setSavingVision(false))
+              }}
+            />{' '}
+            视觉复核（较慢，默认关闭）
+          </label>
+          <p className="jev-hint">应用于后续新建剪辑和换镜。关闭时根据素材理解选镜，仍检查镜头边界。</p>
           <label className="jev-audio-label">
             原声
             <select

@@ -439,6 +439,31 @@
   gap: 7px;
   font-size: 12px;
 }
+
+.jev-music-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+  font-size: 13px;
+}
+.jev-music-drop small, .jev-music-drop p { font-size: 11px; color: var(--muted-foreground); }
+.jev-music-drop.is-dragging { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.jev-project-actions { display: grid; gap: 9px; margin: 12px 0; }
+.jev-project-actions label { display: grid; gap: 5px; font-size: 12px; }
+.jev-project-actions label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: 6px; }
+.jev-project-actions select, .jev-project-actions input[type="number"] { width: 100%; min-width: 0; background: var(--background); border: 1px solid var(--border); padding: 7px; border-radius: 5px; }
+.jev-project-button-row { display: flex; gap: 6px; }
+.jev-project-button-row > button { flex: 1; }
+.jev-generating-spinner { animation: jev-spin 1s linear infinite; flex-shrink: 0; }
+@keyframes jev-spin { to { transform: rotate(360deg); } }
+.jev-generation-placeholder { position:absolute; top:4px; bottom:4px; z-index:20; display:flex; align-items:center; justify-content:center; gap:6px; padding:4px; overflow:hidden; white-space:nowrap; font-size:11px; color:#ffba78; border:1px dashed #f58b2b; border-radius:5px; background:repeating-linear-gradient(135deg,rgba(245,139,43,.16) 0 8px,rgba(245,139,43,.06) 8px 16px); pointer-events:none; }
+.jev-save-state { max-width: min(38vw, 480px); }
+@media (prefers-reduced-motion: reduce) { .jev-generating-spinner { animation:none; } }
 .jev-changed {
   outline: 2px solid var(--primary) !important;
   outline-offset: -2px;

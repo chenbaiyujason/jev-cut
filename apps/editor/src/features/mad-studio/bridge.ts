@@ -20,6 +20,9 @@ import { useProjectStore } from '@/features/projects/stores/project-store'
 import { applyTimelineTransaction, whenEditorReady } from './timeline-sync'
 import { CURRENT_SCHEMA_VERSION, migrateProject } from '@/shared/projects/migrations'
 import { usePlaybackStore } from '@/shared/state/playback'
+import { useItemsStore } from '@/features/timeline/stores/items-store'
+import { generationPlaybackTarget, musicWasExtended } from './generation-playback'
+import { uploadMadMusic } from './music-upload'
 import { waitForPreviewPresentation } from '@/shared/media/preview-presentation'
 import {
   StudioApiError,
@@ -42,7 +45,13 @@ interface BridgeState {
   operations: number
   generationId: string | null
   lastScopedResult: ScopedEditResult | null
+  autoExtend: boolean
+  playWhileGenerating: boolean
+  waitingForClip: boolean
+  pendingClip: PendingGenerationClip | null
 }
+
+export type PendingGenerationClip = { id:string; trackId:string; from:number; to:number; index:number }
 
 export const useMadBridge = create<BridgeState>(() => ({
   revision: 0,
@@ -56,6 +65,10 @@ export const useMadBridge = create<BridgeState>(() => ({
   operations: 0,
   generationId: null,
   lastScopedResult: null,
+  autoExtend: true,
+  playWhileGenerating: true,
+  waitingForClip: false,
+  pendingClip: null,
 }))
 
 let envelope: StudioProject | null = null
@@ -179,7 +192,7 @@ async function applyRemote(data: StudioProject, recordHistory = true): Promise<v
   try {
     const mediaChanged = JSON.stringify(envelope?.media) !== JSON.stringify(data.media)
     if (mediaChanged) await registerMedia(data)
-    await applyTimelineTransaction(project, data.revision, { recordHistory })
+    await applyTimelineTransaction(project, data.revision, { recordHistory, preservePlayback: true })
     envelope = { ...data, project }
     uncertainSave = null
     await storeProject(project)
@@ -278,6 +291,21 @@ function report(error: unknown): void {
 export function startMadBridge(): () => void {
   let stopped = false
   let timer: ReturnType<typeof setTimeout>
+  let extensionTimer: ReturnType<typeof setTimeout> | undefined
+  let seeking = false
+  const stopPlaybackWatch = usePlaybackStore.subscribe(state => {
+    const bridge=useMadBridge.getState()
+    if(seeking || !state.isPlaying || !bridge.generationId || !bridge.playWhileGenerating) return
+    const target=generationPlaybackTarget(useItemsStore.getState().items,state.currentFrame)
+    if(bridge.waitingForClip!==target.waiting)useMadBridge.setState({waitingForClip:target.waiting})
+    if(target.frame!==state.currentFrame){seeking=true;state.setCurrentFrame(target.frame);seeking=false}
+  })
+  const stopMusicWatch = useItemsStore.subscribe((next,previous) => {
+    if(suppressChanges || stopped || !useMadBridge.getState().autoExtend || !musicWasExtended(previous.items,next.items)) return
+    if(useMadBridge.getState().generationId)void cancelMadGeneration().catch(report)
+    clearTimeout(extensionTimer)
+    extensionTimer=setTimeout(()=>{ if(!stopped){void (async()=>{if(useMadBridge.getState().generationId)await cancelMadGeneration();await regenerateCurrentMusic('append')})().catch(report)} },500)
+  })
   const tick = async () => {
     if (stopped) return
     await exclusive(async () => {
@@ -313,11 +341,16 @@ export function startMadBridge(): () => void {
     if (stopped) return
     if (envelope && !restoredDraft) acceptedSignature = editorialSignature(currentProject())
     void tick()
+    const handoff=sessionStorage.getItem('jev-music-start')
+    if(handoff){sessionStorage.removeItem('jev-music-start');try{const args=JSON.parse(handoff) as {musicId:string;prompt:string;duration:number;musicStart?:number;musicFrom?:number;musicRate?:number;musicVolume?:number};void runMusicGeneration('new',args.musicId,args.prompt,args.duration,args.musicStart,args)}catch(error){report(error)}}
   })
   return () => {
     stopped = true
     stopWaiting()
     clearTimeout(timer)
+    clearTimeout(extensionTimer)
+    stopMusicWatch()
+    stopPlaybackWatch()
   }
 }
 
@@ -528,6 +561,8 @@ type GenerationJob = {
   status: 'running' | 'complete' | 'cancelled' | 'error'
   phase: string
   clips: number
+  eventVersion?: number
+  pendingClip?: PendingGenerationClip | null
   state?: StudioProject
   error?: string
 }
@@ -537,23 +572,63 @@ export async function cancelMadGeneration(): Promise<void> {
   if (id) await studioRequest('studio/generation/cancel', { method: 'POST', body: JSON.stringify({ id }) })
 }
 
-export async function generateMad(musicId: string, prompt: string, duration: number): Promise<void> {
+export async function generateMad(musicId: string, prompt: string, duration: number, musicStart=0): Promise<void> {
+  return runMusicGeneration('new',musicId,prompt,duration,musicStart)
+}
+
+export async function regenerateCurrentMusic(mode:'append'|'rebuild',prompt?:string,trackId?:string): Promise<void> {
+  const current=useProjectStore.getState().currentProject
+  let track=useItemsStore.getState().items.find(i=>i.type==='audio'&&(trackId?i.id===trackId:i.trackId==='music'))
+  if(!track?.mediaId){report(new Error('请先设置主音轨'));return}
+  const [library,settings]=await Promise.all([studioRequest<{music:Array<{id:string}>}>('state'),prompt===undefined?studioRequest<{goal:string}>('studio/director/settings'):Promise.resolve(null)])
+  let mediaId=track.mediaId
+  if(!library.music.some(m=>m.id===mediaId)){
+    const metadata=useMediaLibraryStore.getState().mediaItems.find(m=>m.id===mediaId)
+    if(!metadata)throw new Error('请重新连接音轨素材')
+    const {mediaLibraryService}=await import('@/features/media-library/services/media-library-service')
+    const blob=await mediaLibraryService.getMediaFile(metadata)
+    if(!blob)throw new Error('音轨文件不可读取')
+    const result=await uploadMadMusic(new File([blob],metadata.fileName,{type:metadata.mimeType}),phase=>useMadBridge.setState({phase}),new AbortController().signal)
+    mediaId=result.selected.id
+    await registerMedia(await studioRequest<StudioProject>('studio/project'))
+  }
+  const store=useItemsStore.getState()
+  if(track.trackId!=='music'||track.mediaId!==mediaId){
+    suppressChanges=true
+    try{
+      const oldTrack=store.tracks.find(t=>t.id===track!.trackId)
+      if(!store.tracks.some(t=>t.id==='music')&&oldTrack)store.setTracks([...store.tracks,{...oldTrack,id:'music',name:'剪辑主音轨',order:Math.max(...store.tracks.map(t=>t.order))+1}])
+      if(store.items.some(i=>i.trackId==='music'&&i.id!==track!.id)){
+        const otherId=track.trackId==='music'?'other-music':track.trackId
+        if(!store.tracks.some(t=>t.id===otherId)&&oldTrack)store.setTracks([...useItemsStore.getState().tracks,{...oldTrack,id:otherId,name:'其他音频',order:Math.max(...store.tracks.map(t=>t.order))+2}])
+        for(const i of store.items.filter(i=>i.trackId==='music'&&i.id!==track!.id))store._updateItem(i.id,{trackId:otherId})
+      }
+      store._updateItem(track.id,{trackId:'music',mediaId,src:`/mad-media/${mediaId}/preview.m4a`})
+      track=useItemsStore.getState().itemById[track.id]!
+    }finally{suppressChanges=false}
+  }
+  return runMusicGeneration(mode,mediaId,prompt??settings?.goal??current?.description??'',track.durationInFrames/(current?.metadata.fps||30))
+}
+
+async function runMusicGeneration(mode:'new'|'append'|'rebuild',musicId: string, prompt: string, duration: number,musicStart=0,musicOptions:{musicFrom?:number;musicRate?:number;musicVolume?:number}={}): Promise<void> {
   return exclusive(async () => {
     if (!envelope || useMadBridge.getState().conflict) throw new Error('请先同步工程')
     if (useCompositionNavigationStore.getState().activeCompositionId !== null) throw new Error('请返回主时间轴')
     await flushLocal()
-    usePlaybackStore.getState().pause()
-    usePlaybackStore.getState().setCurrentFrame(0)
-    useMadBridge.setState({ pending: true, applying: true, error: null, phase: '正在从空时间轴开始' })
+    if(!useMadBridge.getState().playWhileGenerating)usePlaybackStore.getState().pause()
+    if(mode==='new')usePlaybackStore.getState().setCurrentFrame(0)
+    useMadBridge.setState({ pending: true, applying: false, error: null, phase: mode==='append'?'正在补齐后续':'正在准备全片编排' })
     let job: GenerationJob | undefined
     let firstSnapshot = true
+    let playbackStarted=mode==='append'||usePlaybackStore.getState().isPlaying
     try {
       job = await studioRequest<GenerationJob>('studio/generation/start', {
-        method: 'POST', body: JSON.stringify({ musicId, prompt, duration, baseRevision: envelope.revision }),
+        method: 'POST', body: JSON.stringify({ mode, musicId, prompt, duration, musicStart,...musicOptions, baseRevision: envelope.revision }),
       })
       useMadBridge.setState({ generationId: job.id })
       const deadline = Date.now() + 20 * 60_000
       while (true) {
+        useMadBridge.setState({pendingClip:job.pendingClip??null,phase:job.phase})
         // Never overwrite a local gesture that arrived between server snapshots.
         if (editorialSignature(currentProject()) !== acceptedSignature) {
           await cancelMadGeneration()
@@ -562,15 +637,15 @@ export async function generateMad(musicId: string, prompt: string, duration: num
         if (job.state && job.state.revision > envelope.revision) {
           await applyRemote(job.state, firstSnapshot)
           firstSnapshot = false
+          if(!playbackStarted && useMadBridge.getState().playWhileGenerating){const timeline=job.state.project.timeline;const musicFrom=timeline?.items.find(i=>i.trackId==='music')?.from||0;const clip=timeline?.items.find(i=>i.type==='video'&&i.from<=musicFrom&&i.from+i.durationInFrames>musicFrom);if(clip){usePlaybackStore.getState().setCurrentFrame(musicFrom);usePlaybackStore.getState().play();playbackStarted=true}}
         }
-        useMadBridge.setState({ pending: true, applying: true, phase: `${job.phase} · ${job.clips} 个镜头` })
+        useMadBridge.setState({ pending: true, applying: false, phase: `${job.phase} · ${job.clips} 个镜头` })
         if (job.status !== 'running') break
         if (Date.now() > deadline) {
           await cancelMadGeneration()
           throw new Error('本轮等待结束，已保留排入的镜头')
         }
-        await new Promise(resolve => setTimeout(resolve, 250))
-        job = await studioRequest<GenerationJob>(`studio/generation/jobs/${job.id}?after=${envelope.revision}`)
+        job = await studioRequest<GenerationJob>(`studio/generation/jobs/${job.id}?after=${envelope.revision}&afterEvent=${job.eventVersion??-1}&wait=1`)
       }
       if (job.status === 'error') throw new Error(job.error || '生成中止，已保留排入的镜头')
       useMadBridge.setState({ phase: job.status === 'complete' ? '生成完成 · 可以播放' : '已停止 · 已生成镜头保留' })
@@ -578,7 +653,7 @@ export async function generateMad(musicId: string, prompt: string, duration: num
       if (job?.status === 'running') await cancelMadGeneration().catch(() => {})
       throw error
     } finally {
-      useMadBridge.setState({ pending: false, applying: false, generationId: null })
+      useMadBridge.setState({ pending: false, applying: false, generationId: null,waitingForClip:false,pendingClip:null })
     }
   }).catch(report)
 }

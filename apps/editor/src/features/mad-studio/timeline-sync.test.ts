@@ -14,6 +14,7 @@ import {
 } from '@/features/timeline/stores/timeline-persistence'
 import { useProjectStore } from '@/features/projects/stores/project-store'
 import { applyTimelineTransaction, whenEditorReady } from './timeline-sync'
+import { usePlaybackStore } from '@/shared/state/playback'
 
 const track = makeTimelineTrack({ id: 'v1', name: '画面', kind: 'video', order: 0 })
 const clip = makeTimelineVideoItem({ id: 'shot1', trackId: track.id })
@@ -37,6 +38,20 @@ afterEach(() => {
 })
 
 describe('live Agent transaction history', () => {
+  it('appends streamed clips without pausing or replacing the active clip object', async () => {
+    await hydrateTimelineStoresFromProject(project)
+    const initial=useItemsStore.getState().items[0] as typeof clip
+    const timeline=buildTimelineFromStores()
+    usePlaybackStore.getState().setCurrentFrame(12)
+    usePlaybackStore.getState().play()
+    const next={...project,timeline:{...timeline,items:[{...timeline.items[0]!,src:initial!.src},makeTimelineVideoItem({id:'shot2',trackId:track.id,from:150})]}}
+    expect(await applyTimelineTransaction(next,7,{preservePlayback:true})).toBe('incremental')
+    expect(usePlaybackStore.getState().isPlaying).toBe(true)
+    expect(usePlaybackStore.getState().currentFrame).toBe(12)
+    expect(useItemsStore.getState().items[0]).toBe(initial)
+    expect(useItemsStore.getState().items).toHaveLength(2)
+    usePlaybackStore.getState().pause()
+  })
   it('keeps manual history and makes an Agent batch undoable/redoable through native stores', async () => {
     await hydrateTimelineStoresFromProject(project)
     useTimelineCommandStore

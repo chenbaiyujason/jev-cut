@@ -43,40 +43,37 @@ function timelineStructure(timeline: NonNullable<Project['timeline']>) {
 export async function applyTimelineTransaction(
   project: Project,
   revision: number,
-  options: { recordHistory?: boolean } = {},
+  options: { recordHistory?: boolean; preservePlayback?: boolean } = {},
 ): Promise<'incremental' | 'hydrate'> {
   const before = captureSnapshot()
   const frame = usePlaybackStore.getState().currentFrame
-  usePlaybackStore.getState().pause()
+  if(!options.preservePlayback)usePlaybackStore.getState().pause()
   const current = useProjectStore.getState().currentProject
   const timeline = buildTimelineFromStores()
-  const sameItems =
-    project.timeline?.items.length === timeline.items.length &&
-    project.timeline.items.every(
-      (item, index) =>
-        item.id === timeline.items[index]?.id &&
-        item.type === timeline.items[index]?.type &&
-        !(item as { isReversed?: boolean }).isReversed,
-    )
   const incremental =
     current?.id === project.id &&
     stable(current.metadata) === stable(project.metadata) &&
-    sameItems &&
     project.timeline &&
     timelineStructure(timeline) === timelineStructure(project.timeline)
   if (incremental) {
     // Retain unrelated clip identities, selection and decoder state on a local edit.
     const stored = useItemsStore.getState()
-    for (const next of project.timeline!.items) {
+    const nextIds=new Set(project.timeline!.items.map(i=>i.id))
+    const removed=stored.items.filter(i=>!nextIds.has(i.id)).map(i=>i.id)
+    if(removed.length)stored._removeItems(removed)
+    const added:TimelineItem[]=[]
+    for(const next of project.timeline!.items){
       const previous = stored.itemById[next.id]
-      if (stable(previous) === stable(next)) continue
-      const updates: Record<string, unknown> = { ...next }
-      for (const key of Object.keys(previous ?? {})) if (!(key in next)) updates[key] = undefined
-      stored._updateItem(next.id, updates as Partial<TimelineItem>)
+      if(!previous){added.push(next as TimelineItem);continue}
+      if(stable(previous)===stable(next))continue
+      const updates:Record<string,unknown>={...next}
+      for(const key of Object.keys(previous))if(!(key in next))updates[key]=undefined
+      stored._updateItem(next.id,updates as Partial<TimelineItem>)
     }
+    if(added.length)stored._addItems(added)
   } else await hydrateTimelineStoresFromProject(project, { preserveHistory: true })
   useProjectStore.getState().setCurrentProject(project)
-  usePlaybackStore.getState().setCurrentFrame(frame)
+  if(!incremental)usePlaybackStore.getState().setCurrentFrame(frame)
   if (options.recordHistory !== false) {
     useTimelineCommandStore
       .getState()

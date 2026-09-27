@@ -6,7 +6,7 @@
  */
 const VERSION = 1;
 const TECHNIQUES = ['repeat', 'reprise', 'intercut', 'stutter', 'impact', 'transition', 'grade', 'text'];
-const TRANSITIONS = ['fade', 'wipe', 'slide', 'dissolve', 'additiveDissolve', 'blurDissolve', 'dipToColorDissolve', 'glitch', 'chromatic', 'radialBlur', 'lensWarpZoom'];
+const TRANSITIONS = ['fade', 'wipe', 'slide', 'dissolve', 'additiveDissolve', 'blurDissolve', 'dipToColorDissolve', 'nonAdditiveDissolve', 'smoothCut', 'sparkles', 'glitch', 'pixelate', 'chromatic', 'radialBlur', 'flip', 'clockWipe', 'iris', 'liquidDistort', 'lensWarpZoom', 'lightLeakBurn', 'filmGateSlip'];
 const GRADES = {
   'gpu-contrast': { amount: [0.5, 1.8] },
   'gpu-saturation': { amount: [0, 1.8] },

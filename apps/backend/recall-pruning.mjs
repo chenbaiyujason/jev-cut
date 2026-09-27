@@ -12,12 +12,12 @@ function similarity(a,b){
   if(a.sceneId&&a.sceneId===b.sceneId)return .9;
   const distance=Math.abs(a.start-(b.start??b.sourceIn));return Number.isFinite(distance)?Math.max(0,1-distance/30)*.65:0;
 }
-export function pruneDecisionCandidates(candidates,{limit=8,recent=[],allowReuse=[],continuation=false}={}){
+export function pruneDecisionCandidates(candidates,{limit=8,recent=[],allowReuse=[],continuation=false,continuationSceneId}={}){
   const permitted=new Set(allowReuse),pool=candidates.filter(c=>!c.excluded&&!recent.some(r=>(r.id??r.shotId)===c.id&&!permitted.has(c.id)));
   const result=[],max=Math.max(...pool.map(c=>c.recallScore||0),1e-9);
   while(pool.length&&result.length<limit){let best=-1,bestScore=-Infinity,details;
     for(let i=0;i<pool.length;i++){const c=pool[i],base=Number.isFinite(c.winnowScore)?c.winnowScore/3:(c.recallScore||0)/max;
-      const recentPenalty=recent.reduce((m,r)=>Math.max(m,similarity(c,r)),0)*(continuation?.06:.32);
+      const recentPenalty=recent.reduce((m,r)=>Math.max(m,similarity(c,r)),0)*((continuation||continuationSceneId&&c.sceneId===continuationSceneId)?.06:.32);
       const shortlistPenalty=result.reduce((m,r)=>Math.max(m,similarity(c,r)),0)*.24;
       const score=base-recentPenalty-shortlistPenalty;
       if(score>bestScore){best=i;bestScore=score;details={base,recentPenalty,shortlistPenalty,score};}

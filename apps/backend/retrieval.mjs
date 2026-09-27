@@ -1,10 +1,14 @@
-import {readFile,stat,mkdir,writeFile} from 'node:fs/promises';
+import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
-import {createHash} from 'node:crypto';
-import {embed,configuration} from './gemini.mjs';
+import {configuration} from './gemini.mjs';
+import {queryVector as encodeQuery} from './query-vectors.mjs';
 import {catalogRoot} from './catalog.mjs';
-let loadedIndex=null;
+let loadedIndex=null,indexLoading;const searchCache=new WeakMap();
 async function loadIndex(){
+  if(indexLoading)return indexLoading;
+  indexLoading=readIndex();try{return await indexLoading;}finally{indexLoading=null;}
+}
+async function readIndex(){
   try{
     const file=path.join(catalogRoot,'vector-index.json'),info=await stat(file);
     if(loadedIndex?.mtime===info.mtimeMs)return loadedIndex;
@@ -28,17 +32,20 @@ export function balancedCandidates(ranked,{perEpisode=12,total=132}={}){
   return out;
 }
 export async function retrieve(library,query,{episodeIds,perEpisode=12,limit=132,contextShotIds=[]}={}){
-  let shots=library.sources.filter(s=>!episodeIds?.length||episodeIds.includes(s.episode)).flatMap(s=>s.shots.map(shot=>({...shot,episode:s.episode,sourceName:s.name}))).filter(s=>!s.excluded&&s.semanticStatus==='complete');
+  // Only the immutable authoritative corpus facade is memoized. Mutable legacy libraries are not.
+  let cached=!episodeIds?.length&&Object.isFrozen(library)?searchCache.get(library):null;
+  let shots=cached?.shots||library.sources.filter(s=>!episodeIds?.length||episodeIds.includes(s.episode)).flatMap(s=>s.shots.map(shot=>({...shot,episode:s.episode,sourceName:s.name}))).filter(s=>!s.excluded&&s.semanticStatus==='complete');
+  if(!cached&&!episodeIds?.length&&Object.isFrozen(library)){cached={shots,lex:new Map()};searchCache.set(library,cached);}
   if(!shots.length)throw Error('尚无完成 Gemini 理解的镜头，请先建立全库索引');
-  const lex=shots.map(shot=>({shot,score:lexicalScore(shot,query)})).sort((a,b)=>b.score-a.score),ranks=new Map(lex.map((r,i)=>[r.shot.id,{lexical:i+1}]));
-  const index=await loadIndex();let method='lexical',warning=null;
+  const lex=cached?.lex.get(query)||shots.map(shot=>({shot,score:lexicalScore(shot,query)})).sort((a,b)=>b.score-a.score),ranks=new Map(lex.map((r,i)=>[r.shot.id,{lexical:i+1}]));
+  if(cached){cached.lex.set(query,lex);while(cached.lex.size>24)cached.lex.delete(cached.lex.keys().next().value);}
+  const index=await loadIndex();let method='lexical',warning=null,queryEncoding;
   const config=await configuration();
   if(index&&config.MAD_EMBEDDING_ENABLED!=='false'){
     try{
       const model=config.GEMINI_EMBEDDING_MODEL||'gemini-embedding-2';
       if(index.metadata.model!==model)throw Error('Embedding 模型与现有索引不一致，需要重建');
-      const hash=createHash('sha256').update(model+'\n'+query).digest('hex'),cache=path.join(catalogRoot,'query-cache',hash+'.json');let queryVector;
-      try{queryVector=JSON.parse(await readFile(cache,'utf8'));}catch{queryVector=(await embed([{text:query}],{taskType:'RETRIEVAL_QUERY'})).vector;await mkdir(path.dirname(cache),{recursive:true});await writeFile(cache,JSON.stringify(queryVector));}
+      const encoded=await encodeQuery(query,{model,dimensions:index.metadata.dimensions});let queryVector=encoded.vector;queryEncoding={source:encoded.source,ms:encoded.ms};
       const valid=new Set(shots.map(s=>s.id)),scores=[],dimensions=index.metadata.dimensions;
       if(queryVector.length!==dimensions||queryVector.some(x=>!Number.isFinite(x)))throw Error('查询向量维度或数值无效');
       if(contextShotIds.length){const seeds=index.metadata.entries.map((e,i)=>contextShotIds.includes(e.id)?i:-1).filter(i=>i>=0);if(seeds.length){queryVector=queryVector.map((v,j)=>.85*v+.15*seeds.reduce((n,i)=>n+index.vectors[i*dimensions+j],0)/seeds.length);const norm=Math.hypot(...queryVector);queryVector=queryVector.map(v=>v/norm);}}
@@ -47,5 +54,5 @@ export async function retrieve(library,query,{episodeIds,perEpisode=12,limit=132
     }catch(e){warning=e.message;method='lexical-fallback';}
   }
   shots=shots.map(s=>{const rank=ranks.get(s.id);return {...s,retrievalScore:1/(60+rank.lexical)+(rank.dense?1.5/(60+rank.dense):0),embeddingSimilarity:rank.similarity};}).sort((a,b)=>b.retrievalScore-a.retrievalScore);
-  return {shots:balancedCandidates(shots,{perEpisode,total:limit}),method,warning,totalEligible:shots.length,episodesSearched:[...new Set(shots.map(s=>s.episode))]};
+  return {shots:balancedCandidates(shots,{perEpisode,total:limit}),method,warning,queryEncoding,totalEligible:shots.length,episodesSearched:[...new Set(shots.map(s=>s.episode))]};
 }
